@@ -5,11 +5,10 @@ const MarkdownEditor = (props) => {
     const editorRef = useRef(null);
     return (
         <div className=''>
-            <label>{props?.label}</label>
             <Editor
                 apiKey={process.env.NEXT_PUBLIC_MARKDOWN_KEY}
                 onInit={(_evt, editor) => editorRef.current = editor}
-                initialValue={props.value}
+                initialValue={props?.value}
                 init={{
                     height: 700,
                     menubar: true,
@@ -24,9 +23,9 @@ const MarkdownEditor = (props) => {
                         'removeformat | help',
                     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
                 }}
-                onChange={(e) => { props.setValue(prev => ({ ...prev, [props?.nameKey]: e.target.getContent() })) }}
+                onChange={(e) => { props?.setValue(e.target.getContent()) }}
             />
-            {props && props.errors && props.errors[props.nameKey] && <small className='text-danger'>{props.errors[props.nameKey]}</small>}
+            {props && props?.errors && props?.errors[props?.nameKey] && <small className='text-danger'>{props.errors[props.nameKey]}</small>}
         </div>
     );
 }

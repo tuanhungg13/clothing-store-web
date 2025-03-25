@@ -16,8 +16,8 @@ const firebaseConfig = {
     projectId: "clothing-store-c363f",
     storageBucket: "clothing-store-c363f.firebasestorage.app",
     messagingSenderId: process.env.NEXT_PUBLIC_MESSAGINGSENDID,
-    appId: NEXT_PUBLIC_APPID,
-    measurementId: NEXT_PUBLIC_MEASUREMENTIFD = G - SREZLPL7W4
+    appId: process.env.NEXT_PUBLIC_APPID,
+    measurementId: process.env.NEXT_PUBLIC_MEASUREMENTIFD
 };
 
 // Initialize Firebase

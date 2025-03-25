@@ -24,7 +24,8 @@ const useProductController = () => {
     }
 
     return {
-        products
+        products,
+        fetchProducts
     }
 }
 

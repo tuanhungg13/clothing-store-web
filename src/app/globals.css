@@ -5,6 +5,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --app-main-color: #139949;
+  --app-menu-content-text: #139949;
+  --app-primary-color: #0d8812;
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -19,6 +22,31 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.btn-green-color {
+  border-color: var(--app-main-color) !important;
+  background: var(--app-main-color) !important;
+  color: #fff;
+  min-width: 90px;
+  transition: all 0.3s ease;
+}
+
+.btn-green-color:disabled {
+  border-color: #d7d7d7 !important;
+  background: #eaecef !important;
+  color: gray;
+  cursor: not-allowed;
+  box-shadow: 0px 0px #888888;
+}
+
+.btn-green-color:hover {
+  color: #fff !important;
+  transition: all 0.3s ease !important;
+  opacity: 80 !important;
+
+}
+
 
 @layer utilities {
   .text-balance {

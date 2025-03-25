@@ -7,18 +7,11 @@ import { usePathname } from "next/navigation";
 
 export const ROUTE = {
     HOME: { route: "/", label: "Trang chủ" },
-    CONFIG: { route: "/config", label: "Thông tin website" },
-    THEME: { route: "/theme", label: "Giao diện" },
-    CATEGORIES: { route: "/categories", label: "Danh mục" },
-    PRODUCTS: { route: "/products", label: "Sản phẩm" },
-    SERVICES: { route: "/services", label: "Dịch vụ" },
-    PROMOTION: { route: "/promotion", label: "Khuyến mại" },
+    CATEGORIES: { route: "/admin/categories", label: "Danh mục" },
+    PRODUCTS: { route: "/admin/products", label: "Sản phẩm" },
     ABOUT: { route: "/about", label: "Bài viết giới thiệu" },
-    POPUP: { route: "/popup", label: "Popup" },
-    NEWS: { route: "/news", label: "Bài viết" },
-    NEWS_CATEGORIES: { route: "/news_categories", label: "Chuyên mục" },
-    CREATE_POPUP: { route: "/popup/create_popup", label: "Thêm popup" },
-    CREATE_NEWS: { route: "/news/create_news", label: "Thêm bài viết" }
+
+
 
     //    NEWS: {route: "/news", label: "Tin tức"},
     //    NEWS_DETAIL: {route: "/news/:slug/:languageCode"},
@@ -32,7 +25,6 @@ const MENU_ITEMS = [
         children: [
             { key: ROUTE.CATEGORIES.route, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
             { key: ROUTE.PRODUCTS.route, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
-            { key: ROUTE.SERVICES.route, label: <Link href={ROUTE.SERVICES.route}>{ROUTE.SERVICES.label}</Link> },
         ]
     },
 
