@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import useCategoryController from '@/hook/useCategoryController';
 import { LuPlus } from "react-icons/lu";
 import { MdEdit, MdDelete } from "react-icons/md";
-import { renderStatus, CATEGORYOPTION } from '@/utils/helper/appCommon';
+import { CATEGORYOPTION } from '@/utils/helper/appCommon';
 
 const Categories = (props) => {
     const [params, setParams] = useState({})
@@ -40,7 +40,7 @@ const Categories = (props) => {
             key: "type",
             render: (_, record) => {
                 return (
-                    renderStatus(record?.type)
+                    renderStatus(record?.categoriType)
                 )
             }
         },
@@ -68,7 +68,7 @@ const Categories = (props) => {
         setDataUpdate(item)
         form.setFieldsValue({
             categoryName: item?.categoryName,
-            type: item?.type
+            categoriType: item?.categoriType
         })
     }
 
@@ -84,19 +84,19 @@ const Categories = (props) => {
                 await form.validateFields()
                 const {
                     categoryName = "",
-                    type = ""
+                    categoriType = ""
                 } = form.getFieldValue();
 
-                await addCategory({ categoryName, type })
+                await addCategory({ categoryName, categoriType })
             }
             else {
                 await form.validateFields()
                 const {
                     categoryName = "",
-                    type = ""
+                    categoriType = ""
                 } = form.getFieldValue();
 
-                await updateCategory(dataUpdate?.id, { categoryName, type })
+                await updateCategory(dataUpdate?.id, { categoryName, categoriType })
             }
             handleCancel()
         } catch (error) {
@@ -131,6 +131,21 @@ const Categories = (props) => {
         return results
     };
 
+    const renderStatus = (status) => {
+        let label = CATEGORYOPTION?.[+status]?.label || "Chưa xác định";
+        let className = `text-xs rounded border px-2 py-1 bg-opacity-10 w-max h-max `;
+        switch (+status) {
+            case 0:
+                className += "border-success text-success bg-success";
+                break;
+            case 1:
+                className += "border-warning text-warning bg-warning";
+                break;
+            default:
+                break;
+        }
+        return <div className={className}>{label}</div>
+    }
     return (
         <Row gutter={[12, 12]} className="p-4 bg-background rounded-lg w-full min-h-screen">
             <Col xs={24} sm={24} md={24} lg={24} xl={24} className='!pr-4'>
@@ -138,13 +153,13 @@ const Categories = (props) => {
                     Danh mục sản phẩm
                     <div className='flex gap-6'>
                         <Select
-                            options={[{ label: "Tất cả", value: 0 }, ...CATEGORYOPTION,]}
-                            defaultValue={0}
+                            options={[{ label: "Tất cả", value: 4 }, ...CATEGORYOPTION,]}
+                            defaultValue={4}
                             style={{ minWidth: "100px" }}
                             onChange={(value) => {
                                 setParams((prev) => ({
                                     ...prev,
-                                    type: value === 0 ? null : value,
+                                    categoriType: value === 4 ? null : value,
                                 }));
                             }}
 
@@ -178,7 +193,7 @@ const Categories = (props) => {
                 onCancel={handleCancel}>
                 <Spin spinning={loading}>
                     <Form form={form} onFinish={onFinish} className='mt-6' layout='vertical'>
-                        <Form.Item label="Loại danh mục" name="type" rules={[
+                        <Form.Item label="Loại danh mục" name="categoriType" rules={[
                             {
                                 required: true,
                                 message: "Vui lòng nhập tên danh mục"
@@ -195,7 +210,7 @@ const Categories = (props) => {
                                 message: "Vui lòng nhập tên danh mục"
                             }
                         ]}>
-                            <Input />
+                            <Input placeholder='Nhập tên danh mục' />
                         </Form.Item>
 
                     </Form>

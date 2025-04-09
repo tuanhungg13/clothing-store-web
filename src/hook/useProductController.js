@@ -1,47 +1,114 @@
 import React, { useState, useEffect } from "react";
-import { doc, collection, getDocs, getDoc } from "firebase/firestore";
+import {
+    doc,
+    collection,
+    getDocs,
+    getDoc,
+    query,
+    where,
+    orderBy,
+    startAfter,
+    limit
+} from "firebase/firestore";
 import { db } from "@/utils/config/configFirebase";
 
-const useProductController = () => {
-    const [products, setProducts] = useState([])
+const useProductController = ({ params }) => {
+    const [products, setProducts] = useState([]);
+    const [defaultParams] = useState({ size: 5, page: 1 });
+    const [loading, setLoading] = useState(false);
+    const [totalElements, setTotalElements] = useState(0);
 
     useEffect(() => {
-        fetchProducts()
-    }, [])
+        fetchProducts();
+    }, [params]);
 
     const fetchProducts = async () => {
+        setLoading(true);
         try {
-            const productSnapshot = await getDocs(collection(db, "products"));
+            const filterParams = { ...defaultParams, ...params };
+            const page = filterParams.page || 1;
+            const size = filterParams.size || 5;
+
+            const filters = [];
+
+            // Lọc theo productType nếu có
+            if (filterParams?.productType != null) {
+                filters.push(where("productType", "==", Number(filterParams?.productType)));
+                console.log("check:::::", filterParams?.productType)
+            }
+
+            // Lọc thêm các điều kiện khác nếu có (ví dụ categoryId, brand...)
+            if (filterParams?.categoryId) {
+                filters.push(where("categoryId", "==", filterParams.categoryId));
+            }
+
+            // Tạo query ban đầu với lọc và sắp xếp
+            let baseQuery = query(
+                collection(db, "products"),
+                ...filters,
+                orderBy("createdAt", "desc") // cần index nếu có where kèm orderBy
+            );
+
+            let lastVisible = null;
+
+            // Tính toán vị trí bắt đầu nếu đang ở trang > 1
+            if (page > 1) {
+                const prevQuery = query(baseQuery, limit((page - 1) * size));
+                const prevSnapshot = await getDocs(prevQuery);
+                lastVisible = prevSnapshot.docs[prevSnapshot.docs.length - 1];
+            }
+
+            // Truy vấn trang hiện tại
+            const pagedQuery = query(
+                baseQuery,
+                ...(lastVisible ? [startAfter(lastVisible)] : []),
+                limit(size)
+            );
+
+            const snapshot = await getDocs(pagedQuery);
+
             const productsWithCategory = await Promise.all(
-                productSnapshot.docs.map(async (docSnap) => {
-                    const product = {
-                        id: docSnap.id,
-                        ...docSnap.data()
-                    };
+                snapshot.docs.map(async (docSnap) => {
+                    const product = { id: docSnap.id, ...docSnap.data() };
 
                     let category = null;
                     if (product.categoryId) {
                         const categoryRef = doc(db, "categories", product.categoryId);
                         const categorySnap = await getDoc(categoryRef);
-                        category = categorySnap.exists() ? categorySnap.data() : null;
+                        if (categorySnap.exists()) {
+                            category = categorySnap.data();
+                        }
                     }
 
-                    return {
-                        ...product,
-                        category // Gắn thông tin category vào product
-                    };
+                    return { ...product, category };
                 })
             );
-            console.log(productsWithCategory)
+
             setProducts(productsWithCategory);
+
+            // Đếm tổng số sản phẩm (chỉ cần ở page 1)
+            if (page === 1) {
+                const totalQuery = query(
+                    collection(db, "products"),
+                    ...filters
+                );
+                const totalSnapshot = await getDocs(totalQuery);
+                setTotalElements(totalSnapshot.size);
+            }
+
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu sản phẩm và category:", error);
+            console.error("Lỗi khi lấy sản phẩm:", error);
+        } finally {
+            setLoading(false);
         }
     };
+
     return {
         products,
-        fetchProducts
-    }
-}
+        fetchProducts,
+        loading,
+        totalElements
+    };
+};
 
-export default useProductController
+export default useProductController;

@@ -5,15 +5,11 @@ import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import MarkdownEditor from "../markdownEditor/MarkdownEditor";
 import { LuPlus } from "react-icons/lu";
 import { db } from "@/utils/config/configFirebase"; // file firebase.js bạn đã config
-import { formatCurrencyInput, getBase64 } from "@/utils/helper/appCommon";
+import { formatCurrencyInput, CATEGORYOPTION } from "@/utils/helper/appCommon";
 import UploadCustom from "../ui/Upload";
 import useCategoryController from "@/hook/useCategoryController";
-const CATEGORYOPTION = [
-    { value: 1, label: 'Quần áo' },
-    { value: 2, label: 'Giày' },
-    { value: 3, label: 'Trang sức' },
-    { value: 4, label: 'Mỹ phẩm' },
-]
+import { serverTimestamp } from 'firebase/firestore';
+
 const FormAddProduct = (props) => {
     const [params, setParams] = useState({})
     const {
@@ -42,7 +38,7 @@ const FormAddProduct = (props) => {
                 priceBeforeDiscount: data?.priceBeforeDiscount,
                 discount: data?.discount * 100,
                 variants: data?.variants,
-                type: data?.type
+                productType: data?.productType
             });
             const imagesUrl = data?.images?.map(item => ({ imgData: item }))
             setFileListUpdate(imagesUrl)
@@ -93,7 +89,7 @@ const FormAddProduct = (props) => {
                 categoryId = null,
                 collectionId = null,
                 variants = [],
-                type
+                productType
             } = form.getFieldValue();
             let imagesUrl = [];
             if (fileList?.length > 0) {
@@ -111,7 +107,8 @@ const FormAddProduct = (props) => {
                 description: description,
                 sold: 0,
                 rating: 0,
-                type: type
+                productType: productType,
+                createdAt: serverTimestamp()
             });
             await fetchProducts()
             setLoading(false)
@@ -135,7 +132,7 @@ const FormAddProduct = (props) => {
                 categoryId = null,
                 collectionId = null,
                 variants = [],
-                type
+                productType
             } = form.getFieldValue();
 
             let imagesUrl = [];
@@ -156,7 +153,8 @@ const FormAddProduct = (props) => {
                 discount: discount / 100,
                 variants: variants,
                 description: description,
-                type: type
+                productType: productType,
+                createdAt: serverTimestamp()
             });
 
             await fetchProducts(); // Làm mới danh sách
@@ -172,9 +170,18 @@ const FormAddProduct = (props) => {
         }
     };
 
+    const onFinish = () => {
+        if (Object?.keys(data)?.length > 0) {
+            handleUpdateProduct()
+        }
+        else {
+            handleAddProducts()
+        }
+    }
+
 
     return (
-        <Form form={form} layout="vertical" onFinish={handleUpdateProduct}
+        <Form form={form} layout="vertical" onFinish={onFinish}
             onValuesChange={(changedValues, allValues) => {
                 if (changedValues.price !== undefined) {
                     // Khi người dùng nhập giá -> cập nhật luôn priceBeforeDiscount
@@ -224,7 +231,7 @@ const FormAddProduct = (props) => {
 
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
-                <Form.Item name="type" label="Loại sản phẩm" rules={[{
+                <Form.Item name="productType" label="Loại sản phẩm" rules={[{
                     required: true,
                     message: "Vui lòng chọn loại sản phẩm"
                 }]}>
@@ -289,7 +296,8 @@ const FormAddProduct = (props) => {
                                                         rules={[
                                                             { required: true, message: "Nhập số lượng" },
                                                             { pattern: /^[0-9]+$/, message: "Phải là số" }
-                                                        ]}>
+                                                        ]}
+                                                        initialValue={1}>
                                                         <InputNumber placeholder="Nhập số lượng" />
                                                     </Form.Item>
 
@@ -320,7 +328,7 @@ const FormAddProduct = (props) => {
             </Form.Item>
 
             <Form.Item>
-                <Button type="primary" className="btn-green-color" htmlType="submit">Tạo sản phẩm</Button>
+                <Button type="primary" className="btn-green-color" htmlType="submit">{Object?.keys(data)?.length > 0 ? "Lưu" : "Tạo"}</Button>
             </Form.Item>
         </Form>
     )

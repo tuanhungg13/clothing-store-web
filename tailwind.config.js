@@ -4,6 +4,8 @@ module.exports = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/component/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,html}", // đường dẫn này phải đúng với nơi bạn viết code
+
   ],
   theme: {
     extend: {

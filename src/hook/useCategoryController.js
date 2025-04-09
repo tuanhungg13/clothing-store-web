@@ -7,6 +7,7 @@ import {
     orderBy,
     limit,
     startAfter,
+    addDoc,
     doc,
     updateDoc,
     deleteDoc
@@ -33,9 +34,8 @@ const useCategoryController = (props) => {
             const filterParams = { ...defaultParams, ...params }; // gộp param chuẩn
 
             const filters = [];
-
-            if (filterParams?.type) {
-                filters.push(where("type", "==", filterParams.type));
+            if (filterParams?.categoriType != null) {
+                filters.push(where("categoriType", "==", filterParams?.categoriType));
             }
             const q = query(
                 collection(db, "categories"),
@@ -61,12 +61,12 @@ const useCategoryController = (props) => {
     const addCategory = async (data) => {
         setLoading(true)
         try {
-            console.log("alo alo alo")
             await addDoc(collection(db, 'categories'), data);
             await fetchCategories()
             setLoading(false)
             message.success('Thêm danh mục thành công!');
         } catch (error) {
+            console.log(error)
             message.error('Thêm danh mục thất bại!');
             setLoading(false)
 

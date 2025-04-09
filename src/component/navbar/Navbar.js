@@ -5,7 +5,13 @@ import { logo } from "@/assets";
 import { usePathname } from 'next/navigation';
 import Link from "next/link";
 import { IoCartOutline, IoChevronDownOutline, IoInformationCircleOutline, IoLogOutOutline, IoPersonCircleOutline } from "react-icons/io5";
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
+import { Button } from "antd";
+import { FiHome, FiBox, FiPhoneCall, FiLogIn } from "react-icons/fi";
+import { PiHandHeartBold } from "react-icons/pi";
+import { FaRegNewspaper, FaUserCircle } from "react-icons/fa";
+import { TbCategory } from "react-icons/tb";
+import { saveUserInfo } from "@/redux/slices/userSlice";
 const route = [
     { name: "home", route: "/", label: "Trang chủ" },
     { name: "products", route: "/products", label: "Sản phẩm" },
@@ -16,11 +22,18 @@ const Navbar = () => {
     const pathname = usePathname();
     const cartItems = useSelector?.((state) => state?.cart?.items);
     const userInfo = useSelector?.((state) => state?.user?.info);
-
+    const dispatch = useDispatch()
     const [totalItem, setTotalItem] = useState("");
+    useEffect(() => {
+        const savedUser = localStorage.getItem("userInfo");
+        if (savedUser) {
+            dispatch(saveUserInfo(JSON.parse(savedUser)));
+        }
+    }, []);
+
     const cart = () => {
         return (
-            <LinkToPage Link={Link} href="/gio-hang">
+            <Link href="/gio-hang">
                 <div className="relative cursor-pointer">
                     <IoCartOutline className={"text-primary"} size={30} />
                     {totalItem ?
@@ -31,13 +44,13 @@ const Navbar = () => {
                         : null
                     }
                 </div>
-            </LinkToPage>
+            </Link>
 
         )
     }
 
     return (
-        <div className="flex justify-between px-4 lg:px-10 xl:px-20 py-4">
+        <div className="flex justify-between px-4 lg:px-10 xl:px-20 py-4 bg-bgSecondary sticky top-0 shadow z-50">
             <div className="flex gap-4 items-center">
                 <img src={logo.src} className="object-contain" />
                 <div>
@@ -46,6 +59,26 @@ const Navbar = () => {
                     ))}
                 </div>
             </div>
+            <div className="flex gap-8 items-center">
+                {cart()}
+                {userInfo ?
+                    <div className="flex justify-center">
+                        <FaUserCircle className="text-primary" size={48} />
+                        <div className="ml-2">
+                            <label>Xin chào!</label>
+                            <div>{userInfo?.fullName}</div>
+                        </div>
+                    </div>
+                    :
+                    <div className="flex gap-4">
+                        <Link href={"/login"}>
+                            <Button className="btn-green-color">Đăng nhập</Button>
+                        </Link>
+                        <Button>Đăng ký</Button>
+                    </div>
+                }
+            </div>
+
 
         </div>
     )

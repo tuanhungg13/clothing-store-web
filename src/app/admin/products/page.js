@@ -1,11 +1,11 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { formatCurrency } from "@/utils/helper/appCommon";
-import { Button, Form, Input, Drawer, Select, Upload, Image, Spin } from "antd";
+import { Button, Form, Input, Drawer, Select, Upload, Image, Spin, Pagination } from "antd";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import useProductController from "@/hook/useProductController";
 import FormAddProduct from "@/component/form/FormAddProduct";
-import { renderStatus, CATEGORYOPTION } from "@/utils/helper/appCommon";
+import { CATEGORYOPTION } from "@/utils/helper/appCommon";
 
 const rowClassName = "py-2 px-4 text-center whitespace-nowrap"
 
@@ -13,9 +13,14 @@ export default function ProductManage() {
 
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [dataProduct, setDataProduct] = useState({})
-    const [loading, setLoading] = useState(false)
-
-    const { products = [], fetchProducts = () => { } } = useProductController()
+    const [isLoading, setIsLoading] = useState(false)
+    const [params, setParams] = useState({ page: 1, size: 5 })
+    const {
+        products = [],
+        fetchProducts = () => { },
+        loading,
+        totalElements
+    } = useProductController({ params })
     const getTotalQuantity = (variants) => {
         return variants.reduce((total, variant) => {
             const variantTotal = variant.sizes.reduce((sum, size) => sum + Number(size.quantity || 0), 0);
@@ -28,16 +33,47 @@ export default function ProductManage() {
         setIsOpenModal(true)
     }
 
+    const renderStatus = (status) => {
+        let label = CATEGORYOPTION?.[+status]?.label || "Chưa xác định";
+        let className = `text-xs rounded border px-2 py-1 bg-opacity-10 w-max h-max `;
+        switch (+status) {
+            case 0:
+                className += "border-success text-success bg-success";
+                break;
+            case 1:
+                className += "border-warning text-warning bg-warning";
+                break;
+            default:
+                break;
+        }
+        return <div className={className}>{label}</div>
+    }
 
     return (
         <div className={`bg-background w-full rounded-lg`}>
             <div className="h-screen w-full p-4">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl lg:text-4xl font-semibold">Sản phẩm</h2>
-                    <Button type="primary" className="flex items-center gap-4 btn-green-color"
-                        onClick={() => { setIsOpenModal(true) }}>
-                        <IoIosAddCircleOutline />
-                        Tạo sản phẩm</Button>
+                    <div className="flex gap-6">
+                        <Select
+                            options={[{ label: "Tất cả", value: 2 }, ...CATEGORYOPTION,]}
+                            defaultValue={2}
+                            style={{ minWidth: "100px" }}
+                            onChange={(value) => {
+                                setParams((prev) => ({
+                                    ...prev,
+                                    productType: value === 2 ? null : value,
+                                    page: 1
+                                }));
+                            }}
+
+                        />
+                        <Button type="primary" className="flex items-center gap-4 btn-green-color"
+                            onClick={() => { setIsOpenModal(true) }}>
+                            <IoIosAddCircleOutline />
+                            Tạo sản phẩm</Button>
+                    </div>
+
                 </div>
                 <div className="hidden md:block overflow-x-auto mt-8">
                     <table className="table-auto w-full border-collapse rounded-xl">
@@ -73,7 +109,7 @@ export default function ProductManage() {
                                     <td className={`${rowClassName} !text-wrap text-start`}>{product?.productName}</td>
                                     <td className={`${rowClassName} whitespace-nowrap`}>{formatCurrency(product?.price)}</td>
                                     <td className={`${rowClassName}`}>{getTotalQuantity(product?.variants)}</td>
-                                    <td className={`${rowClassName}`}>{renderStatus(product?.type)}</td>
+                                    <td className={`${rowClassName}`}>{renderStatus(product?.productType)}</td>
                                     <td className={`${rowClassName}`}>{product?.category?.categoryName}</td>
                                     <td className={`${rowClassName}`}></td>
                                     <td className={`${rowClassName} cursor-pointer`}>
@@ -87,15 +123,29 @@ export default function ProductManage() {
                         </tbody>
                     </table>
                 </div>
+                <div className="mt-8">
+                    <Pagination
+                        align="center"
+                        current={params?.page || 1}
+                        pageSize={params?.size}
+                        total={totalElements}
+                        onChange={(page) => {
+                            setParams(prev => ({ ...prev, page: page }));
+                        }}
+                    />
+                </div>
             </div>
 
-            <Drawer title="Thêm sản phẩm"
-                onClose={() => { setIsOpenModal(false) }}
+            <Drawer title={Object?.keys(dataProduct)?.length > 0 ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
+                onClose={() => {
+                    setIsOpenModal(false)
+                    setDataProduct({})
+                }}
                 open={isOpenModal}
                 width={"60vw"}
             >
                 <Spin spinning={loading}>
-                    <FormAddProduct setLoading={setLoading}
+                    <FormAddProduct setLoading={setIsLoading}
                         fetchProducts={fetchProducts}
                         data={dataProduct}
                         isOpen={isOpenModal}
