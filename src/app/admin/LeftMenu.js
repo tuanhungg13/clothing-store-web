@@ -18,16 +18,8 @@ export const ROUTE = {
 }
 
 const MENU_ITEMS = [
-    {
-        key: "3",
-        label: "Hàng hoá",
-        icon: "",
-        children: [
-            { key: ROUTE.CATEGORIES.route, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
-            { key: ROUTE.PRODUCTS.route, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
-        ]
-    },
-
+    { key: ROUTE.CATEGORIES.route, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
+    { key: ROUTE.PRODUCTS.route, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
 ]
 
 export default function LeftMenu(props) {
@@ -48,16 +40,8 @@ export default function LeftMenu(props) {
                 route = parent?.children?.find(e => e?.key === basePath)
             }
         }
-        console.log("route", route);
-        setConfigTailwindOrigin();
         setDefaultRoute(route);
     }, []);
-
-    const setConfigTailwindOrigin = () => {
-        document.documentElement.style.setProperty('--primary', '#1F984D');
-        document.documentElement.style.setProperty('--background', "#fff");
-        document.documentElement.style.setProperty('--bgSecondary', "#F7F9F9");
-    }
 
     return (
         <React.Fragment>

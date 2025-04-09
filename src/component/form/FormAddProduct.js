@@ -1,18 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Upload, Select, Button, InputNumber, Image } from "antd";
+import { Form, Input, Select, Button, InputNumber, Image } from "antd";
 import { message } from "antd";
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import MarkdownEditor from "../markdownEditor/MarkdownEditor";
 import { LuPlus } from "react-icons/lu";
 import { db } from "@/utils/config/configFirebase"; // file firebase.js bạn đã config
 import { formatCurrencyInput, getBase64 } from "@/utils/helper/appCommon";
+import UploadCustom from "../ui/Upload";
+import useCategoryController from "@/hook/useCategoryController";
+const CATEGORYOPTION = [
+    { value: 1, label: 'Quần áo' },
+    { value: 2, label: 'Giày' },
+    { value: 3, label: 'Trang sức' },
+    { value: 4, label: 'Mỹ phẩm' },
+]
 const FormAddProduct = (props) => {
-
+    const [params, setParams] = useState({})
     const {
         data,
         setLoading = () => { },
-        fetchProducts = () => { }
+        fetchProducts = () => { },
+        isOpen
     } = props
+
+    const {
+        categories = []
+    } = useCategoryController({ params })
 
     const [fileList, setFileList] = useState([])
     const [fileListUpdate, setFileListUpdate] = useState([])
@@ -29,6 +42,7 @@ const FormAddProduct = (props) => {
                 priceBeforeDiscount: data?.priceBeforeDiscount,
                 discount: data?.discount * 100,
                 variants: data?.variants,
+                type: data?.type
             });
             const imagesUrl = data?.images?.map(item => ({ imgData: item }))
             setFileListUpdate(imagesUrl)
@@ -36,39 +50,14 @@ const FormAddProduct = (props) => {
         }
     }, [data])
 
-    const propsUpload = {
-        name: "files",
-        showUploadList: false,
-        multiple: true,
-        maxCount: 20,
-        fileList: fileList,
-        accept: "image/*",
-        beforeUpload: async (file) => {
-            const fileType = file.type;
-            const isJpgOrPng = fileType.includes("image");
+    useEffect(() => {
+        if (!isOpen) {
+            setFileList([])
+            setFileListUpdate([])
+        }
 
-            if (!isJpgOrPng) {
-                message.error(texts?.ASSERT_IMAGE || "Không đúng định dạng ảnh");
-                return false;
-            }
+    }, [isOpen])
 
-            const isLt20M = file.size / 1024 / 1024 < 0.8;
-            if (!isLt20M) {
-                message.error(texts?.UPLOAD_IMAGE_800KB || "Kích thước ảnh quá lớn");
-                return false
-            }
-            if (!file.url && !file.imgData) {
-                file.imgData = await getBase64(file);
-            }
-            if (isJpgOrPng && isLt20M) {
-                setFileListUpdate([])
-                setFileList((prev) => [...prev, file]);
-                setUpdate(true)
-            }
-
-            return false;
-        },
-    };
 
 
     const handleUploadImages = async (files) => {
@@ -103,7 +92,8 @@ const FormAddProduct = (props) => {
                 priceBeforeDiscount,
                 categoryId = null,
                 collectionId = null,
-                variants = []
+                variants = [],
+                type
             } = form.getFieldValue();
             let imagesUrl = [];
             if (fileList?.length > 0) {
@@ -118,7 +108,10 @@ const FormAddProduct = (props) => {
                 discount: discount / 100,
                 images: imagesUrl,
                 variants: variants,
-                description: description
+                description: description,
+                sold: 0,
+                rating: 0,
+                type: type
             });
             await fetchProducts()
             setLoading(false)
@@ -131,9 +124,57 @@ const FormAddProduct = (props) => {
         }
     }
 
+    const handleUpdateProduct = async () => {
+        setLoading(true);
+        try {
+            const {
+                productName,
+                price,
+                discount = 0,
+                priceBeforeDiscount,
+                categoryId = null,
+                collectionId = null,
+                variants = [],
+                type
+            } = form.getFieldValue();
+
+            let imagesUrl = [];
+
+            // Nếu có ảnh mới, upload ảnh
+            if (fileList?.length > 0) {
+                imagesUrl = await handleUploadImages(fileList);
+            }
+
+            const productRef = doc(db, "products", data?.id);
+
+            await updateDoc(productRef, {
+                productName: productName,
+                price: price,
+                categoryId: categoryId,
+                collectionId: collectionId,
+                priceBeforeDiscount: priceBeforeDiscount,
+                discount: discount / 100,
+                variants: variants,
+                description: description,
+                type: type
+            });
+
+            await fetchProducts(); // Làm mới danh sách
+            form.resetFields();
+            setFileList([]);
+            setFileListUpdate([])
+            message.success("Cập nhật sản phẩm thành công");
+        } catch (e) {
+            console.error("❌ Lỗi cập nhật sản phẩm:", e);
+            message.error("Cập nhật thất bại");
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     return (
-        <Form form={form} layout="vertical" onFinish={handleAddProducts}
+        <Form form={form} layout="vertical" onFinish={handleUpdateProduct}
             onValuesChange={(changedValues, allValues) => {
                 if (changedValues.price !== undefined) {
                     // Khi người dùng nhập giá -> cập nhật luôn priceBeforeDiscount
@@ -156,13 +197,14 @@ const FormAddProduct = (props) => {
                     }
                 }
             }}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 md:gap-4 lg:gap-6">
-                <Form.Item name="productName" label="Tên sản phẩm" rules={[{
-                    required: true,
-                    message: "Vui lòng nhập tên sản phẩm"
-                }]}>
-                    <Input />
-                </Form.Item>
+            <Form.Item name="productName" label="Tên sản phẩm" rules={[{
+                required: true,
+                message: "Vui lòng nhập tên sản phẩm"
+            }]}>
+                <Input />
+            </Form.Item>
+            <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
+
                 <Form.Item name="price" label="Giá sản phẩm" rules={[{
                     required: true,
                     message: "Vui lòng nhập giá sản phẩm"
@@ -171,12 +213,32 @@ const FormAddProduct = (props) => {
                         formatter={(value) => formatCurrencyInput(value)} />
                 </Form.Item>
                 <Form.Item name="categoryId" label="Danh mục sản phẩm" >
-                    <Select />
+                    <Select
+                        options={categories?.map(item => ({
+                            label: item?.categoryName,
+                            value: item?.id,
+                        }))}
+                        placeholder="Chọn danh mục"
+                    />
                 </Form.Item>
 
             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
+                <Form.Item name="type" label="Loại sản phẩm" rules={[{
+                    required: true,
+                    message: "Vui lòng chọn loại sản phẩm"
+                }]}>
+                    <Select
+                        options={CATEGORYOPTION}
+                        placeholder="Chọn loại sản phẩm"
+                    />
+                </Form.Item>
+                <Form.Item name="collectionId" label="Bộ sưu tập sản phẩm" >
+                    <Select placeholder="Chọn bộ sưu tập" />
+                </Form.Item>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 md:gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
                 <Form.Item name="discount" label="Giảm giá (%)">
                     <Input />
                 </Form.Item>
@@ -185,20 +247,12 @@ const FormAddProduct = (props) => {
                         formatter={(value) => formatCurrencyInput(value)}
                     />
                 </Form.Item>
-                <Form.Item name="collectionId" label="Bộ sưu tập sản phẩm" >
-                    <Select />
-                </Form.Item>
+
             </div>
             <Form.Item label="Mô tả sản phẩm">
                 <MarkdownEditor value={description} setValue={setDescription} />
             </Form.Item>
-            <Form.List name="variants" rules={[{
-                validator: async (_, value) => {
-                    if (!value || value.length === 0) {
-                        return Promise.reject(new Error("Vui lòng thêm ít nhất một biến thể"));
-                    }
-                }
-            }]}>
+            <Form.List name="variants" >
                 {(fields, { add, remove }) => (
                     <>
                         {fields.map(({ key, name, ...restField }) => (
@@ -236,7 +290,7 @@ const FormAddProduct = (props) => {
                                                             { required: true, message: "Nhập số lượng" },
                                                             { pattern: /^[0-9]+$/, message: "Phải là số" }
                                                         ]}>
-                                                        <Input placeholder="Nhập số lượng" />
+                                                        <InputNumber placeholder="Nhập số lượng" />
                                                     </Form.Item>
 
                                                     {/* Nút xóa kích cỡ */}
@@ -256,29 +310,12 @@ const FormAddProduct = (props) => {
                     </>
                 )}
             </Form.List>
-            <Form.Item name='images' label="Ảnh sản phẩm">
-                <div className="flex gap-4 items-start">
-                    {[...fileList, ...fileListUpdate]?.map((item, index) => (
-                        <div className="upload-list-item relative" key={index}>
-                            <div className="ant-upload-list-item-info">
-                                <span className="ant-upload-span rounded-lg">
-                                    <Image src={item?.imgData || ""} alt={item?.name} width={100} height={100}
-                                        className="ant-upload-list-item-image object-contain rounded-lg" />
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                    <Upload
-                        listType="picture-card"
-                        {...propsUpload}
-
-                    >
-                        <div className="flex flex-col justify-center items-center">
-                            <LuPlus />
-                            <div>Thêm ảnh</div>
-                        </div>
-                    </Upload>
-                </div>
+            <Form.Item name='images' label="Ảnh sản phẩm" className="mt-4">
+                <UploadCustom fileList={fileList}
+                    fileListUpdate={fileListUpdate}
+                    setFileListUpdate={setFileListUpdate}
+                    setFileList={setFileList}
+                />
 
             </Form.Item>
 

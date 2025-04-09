@@ -1,17 +1,26 @@
 "use client"
-import { Button, Checkbox, Col, Row, Table, message } from 'antd'
+import { Button, Spin, Form, Input, Col, Modal, Row, Table, message, Select } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import useCategoryController from '@/hook/useCategoryController';
+import { LuPlus } from "react-icons/lu";
+import { MdEdit, MdDelete } from "react-icons/md";
+import { renderStatus, CATEGORYOPTION } from '@/utils/helper/appCommon';
 
 const Categories = (props) => {
-
-    // const {
-    //     categories,
-    //     loading,
-    //     page,
-    //     updateCategories = () => { },
-    // } = CategoryController(props);
-
+    const [params, setParams] = useState({})
+    const {
+        categories,
+        loading,
+        page,
+        addCategory = () => { },
+        updateCategory = () => { },
+        deleteCategory = () => { }
+    } = useCategoryController({ ...props, params });
+    const [isOpenModalCategory, setIsOpenModelCategory] = useState(false)
+    const [dataUpdate, setDataUpdate] = useState({})
+    const [fileList, setFileList] = useState([])
+    const [fileListUpdate, setFileListUpdate] = useState([])
+    const [form] = Form.useForm()
     const columnsCategory = [
         {
             title: '#',
@@ -22,46 +31,179 @@ const Categories = (props) => {
         },
         {
             title: "Tên danh mục",
-            dataIndex: 'cateName',
-            key: 'cateName',
+            dataIndex: 'categoryName',
+            key: 'categoryName',
+        },
+        {
+            title: "Loại",
+            dataIndex: "type",
+            key: "type",
+            render: (_, record) => {
+                return (
+                    renderStatus(record?.type)
+                )
+            }
+        },
+        {
+            title: "Hành động",
+            dataIndex: "action",
+            key: "action",
+            render: (_, record) => {
+                return (
+                    <div className='flex gap-4 '>
+                        <div className='text-warning cursor-pointer' onClick={() => {
+                            handleFillFormUpdate(record)
+                        }}><MdEdit size={20} /></div>
+                        <div className='text-danger cursor-pointer'
+                            onClick={() => { handleDeleteCategory(record?.id) }}
+                        ><MdDelete size={20} /></div>
+                    </div>
+                )
+            }
         }
     ]
 
+    const handleFillFormUpdate = (item) => {
+        setIsOpenModelCategory(true)
+        setDataUpdate(item)
+        form.setFieldsValue({
+            categoryName: item?.categoryName,
+            type: item?.type
+        })
+    }
+
+    const handleCancel = () => {
+        setIsOpenModelCategory(false)
+        setDataUpdate({})
+        form.resetFields()
+    }
+
+    const onFinish = async () => {
+        try {
+            if (Object?.keys(dataUpdate)?.length <= 0) {
+                await form.validateFields()
+                const {
+                    categoryName = "",
+                    type = ""
+                } = form.getFieldValue();
+
+                await addCategory({ categoryName, type })
+            }
+            else {
+                await form.validateFields()
+                const {
+                    categoryName = "",
+                    type = ""
+                } = form.getFieldValue();
+
+                await updateCategory(dataUpdate?.id, { categoryName, type })
+            }
+            handleCancel()
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    const handleDeleteCategory = async (id) => {
+        try {
+            await deleteCategory(id)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const handleUploadImages = async (files) => {
+        const uploadPromises = Array.from(files).map(async (file) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", "unsigned_upload");
+            formData.append("cloud_name", "dpn2spmzo");
+
+            const res = await fetch("https://api.cloudinary.com/v1_1/dpn2spmzo/image/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await res.json();
+            return result.secure_url;
+        });
+
+        const results = await Promise.all(uploadPromises);
+        return results
+    };
+
     return (
         <Row gutter={[12, 12]} className="p-4 bg-background rounded-lg w-full min-h-screen">
-            <Col xs={24} sm={24} md={24} lg={12} xl={12} className='!pr-4'>
+            <Col xs={24} sm={24} md={24} lg={24} xl={24} className='!pr-4'>
                 <div className="text-xl flex justify-between">
                     Danh mục sản phẩm
-                    <Button className='btn-green-color' type='primary'>Thêm danh mục</Button>
+                    <div className='flex gap-6'>
+                        <Select
+                            options={[{ label: "Tất cả", value: 0 }, ...CATEGORYOPTION,]}
+                            defaultValue={0}
+                            style={{ minWidth: "100px" }}
+                            onChange={(value) => {
+                                setParams((prev) => ({
+                                    ...prev,
+                                    type: value === 0 ? null : value,
+                                }));
+                            }}
+
+                        />
+                        <Button className='btn-green-color'
+                            type='primary'
+                            onClick={() => { setIsOpenModelCategory(true) }}
+                        >Thêm danh mục
+                        </Button>
+                    </div>
+
                 </div>
                 <Table
-                    // dataSource={productCategories.map((c, index) => ({
-                    //     ...c,
-                    //     stt: index + 1
-                    // }))}
+                    dataSource={categories.map((c, index) => ({
+                        ...c,
+                        stt: index + 1
+                    }))}
                     columns={columnsCategory}
-                    // loading={loading}
+                    loading={loading}
                     pagination={false}
                     className="mt-4"
                 />
             </Col>
-            <Col xs={24} sm={24} md={24} lg={12} xl={12} className='!ps-4'>
-                <div className="text-xl flex justify-between">
-                    Bộ sưu tập
-                    <Button className='btn-green-color' type='primary'>Thêm bộ sưu tập</Button>
-                </div>
-                <Table
-                    // dataSource={serviceCategories.map((c, index) => ({
-                    //     ...c,
-                    //     stt: index + 1
-                    // }))}
-                    columns={columnsCategory}
-                    // loading={loading}
-                    pagination={false}
-                    className="mt-4"
-                />
-            </Col>
+
+            <Modal title={Object?.keys(dataUpdate)?.length > 0 ? "Cập nhật danh mục" : "Thêm danh mục"}
+                open={isOpenModalCategory}
+                closable={!loading}
+                onOk={onFinish}
+                okText="Lưu"
+                cancelText="Hủy"
+                onCancel={handleCancel}>
+                <Spin spinning={loading}>
+                    <Form form={form} onFinish={onFinish} className='mt-6' layout='vertical'>
+                        <Form.Item label="Loại danh mục" name="type" rules={[
+                            {
+                                required: true,
+                                message: "Vui lòng nhập tên danh mục"
+                            }
+                        ]} >
+                            <Select
+                                options={CATEGORYOPTION}
+                                placeholder="Chọn loại danh mục"
+                            />
+                        </Form.Item>
+                        <Form.Item label="Tên danh mục" name="categoryName" rules={[
+                            {
+                                required: true,
+                                message: "Vui lòng nhập tên danh mục"
+                            }
+                        ]}>
+                            <Input />
+                        </Form.Item>
+
+                    </Form>
+                </Spin>
+
+            </Modal>
         </Row>
+
 
     )
 }
