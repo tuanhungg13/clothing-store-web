@@ -15,6 +15,7 @@ import { saveUserInfo } from "@/redux/slices/userSlice";
 import Options from "../ui/Options";
 import useCartController from "@/hook/useCartController";
 import useAuthController from "@/hook/AuthController";
+import { initCart } from "@/redux/slices/cartSlice";
 const route = [
     { name: "home", route: "/", label: "Trang chủ" },
     { name: "products", route: "/products", label: "Sản phẩm" },
@@ -38,9 +39,13 @@ const Navbar = () => {
     } = useAuthController()
     useEffect(() => {
         const savedUser = localStorage.getItem("userInfo");
+        const cartItems = localStorage.getItem("cartItems")
         if (savedUser) {
             getUserCartFromFirebase(JSON.parse(savedUser))
             dispatch(saveUserInfo(JSON.parse(savedUser)));
+        }
+        else {
+            dispatch(initCart(JSON.parse(cartItems)))
         }
     }, []);
 
@@ -62,7 +67,7 @@ const Navbar = () => {
 
     const cart = () => {
         return (
-            <Link href="/gio-hang">
+            <Link href="/carts">
                 <div className="relative cursor-pointer">
                     <IoCartOutline className={"text-primary"} size={30} />
                     {totalItem ?
@@ -147,6 +152,31 @@ const Navbar = () => {
                             onClick={() => { setIsOpen(false) }}
                         >{item?.label}</Link>
                     ))}
+                    {userInfo ?
+                        profileOptions?.map((option, index) =>
+                        (option?.href ?
+                            <Link onClick={() => setIsOpen(false)} key={`hkfdfh-${index}`} href={option?.href}
+                                className={"flex gap-2 px-4 py-2 text-black hover:bg-gray-100 rounded cursor-pointer"} role="menuitem">
+                                <IoPersonCircleOutline size={24} />
+                                <p>{option?.label}</p>
+                            </Link>
+                            :
+                            <div key={`hkfdfh-${index}`} onClick={() => {
+                                setIsOpen(false)
+                                logout()
+                            }} className={"flex gap-2 px-4 py-2 text-black hover:bg-gray-100 rounded cursor-pointer"} role="menuitem">
+                                <IoLogOutOutline size={24} />
+                                <p>{option?.label}</p>
+                            </div>
+                        ))
+                        :
+                        <Link href={"/login"} onClick={() => setIsOpen(false)}>
+                            <div className={`py-2 px-4 flex items-center gap-4`}>
+                                <FiLogIn size={20} />
+                                Đăng nhập
+                            </div>
+                        </Link>
+                    }
                 </div>
 
             </Drawer>

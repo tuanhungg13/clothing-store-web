@@ -37,9 +37,9 @@ const useCartController = () => {
         let localCart = JSON.parse(localStorage.getItem(LOCAL_CART_KEY)) || [];
 
         const matchIndex = localCart.findIndex(item =>
-            item.productId === cartItem.productId &&
-            item.variant.color === cartItem.variant.color &&
-            item.variant.size === cartItem.variant.size
+            item?.productId === cartItem?.productId &&
+            item?.variant?.color === cartItem?.variant?.color &&
+            item?.variant?.size === cartItem?.variant?.size
         );
 
         if (matchIndex > -1) {
@@ -58,6 +58,7 @@ const useCartController = () => {
             productName: product?.productName,
             image: product?.images[0],
             price: product?.price,
+            variants: product?.variants,
             variant,
             quantity
         };
@@ -69,9 +70,9 @@ const useCartController = () => {
                 let cartItems = cartSnap.exists() ? cartSnap.data()?.cartItems || [] : [];
 
                 const matchIndex = cartItems.findIndex(item =>
-                    item.productId === cartItem.productId &&
-                    item.variant.color === cartItem.variant.color &&
-                    item.variant.size === cartItem.variant.size
+                    item?.productId === cartItem?.productId &&
+                    item?.variant?.color === cartItem?.variant?.color &&
+                    item?.variant?.size === cartItem?.variant?.size
                 );
 
                 if (matchIndex > -1) {
@@ -85,7 +86,7 @@ const useCartController = () => {
             } else {
                 saveToLocalCart(cartItem);
             }
-
+            message.success("Thêm sản phẩm vào giỏ hàng thành công!");
             dispatch(addToCart({ product, variant, quantity }));
         } catch (error) {
             console.error("🔥 Lỗi khi thêm vào giỏ hàng:", error);
@@ -123,11 +124,134 @@ const useCartController = () => {
         dispatch(initCart(existingItems));
         localStorage.removeItem(LOCAL_CART_KEY);
     };
+    const updateCartItem = async ({ productId, variant, newQuantity }) => {
+        try {
+            const user = auth?.currentUser;
+            if (user && userInfo?.cartId) {
+                const cartRef = doc(db, 'carts', userInfo.cartId);
+                const cartSnap = await getDoc(cartRef);
+
+                if (cartSnap.exists()) {
+                    let cartItems = cartSnap.data()?.cartItems || [];
+                    const matchIndex = cartItems.findIndex(item =>
+                        item.productId === productId &&
+                        item.variant.color === variant.color &&
+                        item.variant.size === variant.size
+                    );
+
+                    if (matchIndex > -1) {
+                        cartItems[matchIndex].quantity = newQuantity;
+                        await updateDoc(cartRef, { cartItems });
+                        dispatch(initCart(cartItems));
+                    }
+                    message.success("Thay đổi số lượng thành công")
+                }
+            } else {
+                let localCart = JSON.parse(localStorage.getItem(LOCAL_CART_KEY)) || [];
+                const matchIndex = localCart.findIndex(item =>
+                    item.productId === productId &&
+                    item.variant.color === variant.color &&
+                    item.variant.size === variant.size
+                );
+
+                if (matchIndex > -1) {
+                    localCart[matchIndex].quantity = newQuantity;
+                    localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(localCart));
+                    dispatch(initCart(localCart));
+                }
+                message.success("Thay đổi số lượng thành công")
+            }
+        } catch (error) {
+            console.error("🔥 Lỗi khi cập nhật sản phẩm:", error);
+            message.error("Không thể cập nhật số lượng sản phẩm.");
+        }
+    };
+
+    const removeCartItem = async ({ productId, variant }) => {
+        try {
+            const user = auth?.currentUser;
+
+            if (user && userInfo?.cartId) {
+                const cartRef = doc(db, 'carts', userInfo.cartId);
+                const cartSnap = await getDoc(cartRef);
+
+                if (cartSnap.exists()) {
+                    let cartItems = cartSnap.data()?.cartItems || [];
+                    cartItems = cartItems.filter(item =>
+                        !(item.productId === productId &&
+                            item.variant.color === variant.color &&
+                            item.variant.size === variant.size)
+                    );
+                    await updateDoc(cartRef, { cartItems });
+                    dispatch(initCart(cartItems));
+                }
+            } else {
+                let localCart = JSON.parse(localStorage.getItem(LOCAL_CART_KEY)) || [];
+                localCart = localCart.filter(item =>
+                    !(item.productId === productId &&
+                        item.variant.color === variant.color &&
+                        item.variant.size === variant.size)
+                );
+                localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(localCart));
+                dispatch(initCart(localCart));
+            }
+        } catch (error) {
+            console.error("🔥 Lỗi khi xoá sản phẩm:", error);
+            message.error("Không thể xoá sản phẩm khỏi giỏ hàng.");
+        }
+    };
+
+    const removeMultipleCartItems = async (itemsToRemove) => {
+        try {
+            const user = auth?.currentUser;
+
+            if (user && userInfo?.cartId) {
+                const cartRef = doc(db, 'carts', userInfo?.cartId);
+                const cartSnap = await getDoc(cartRef);
+
+                if (cartSnap.exists()) {
+                    let cartItems = cartSnap?.data()?.cartItems || [];
+
+                    // Lọc ra những sản phẩm KHÔNG nằm trong danh sách xóa
+                    cartItems = cartItems.filter(item => {
+                        return !itemsToRemove.some(toRemove =>
+                            item?.productId === toRemove?.productId &&
+                            item?.variant?.color === toRemove?.variant?.color &&
+                            item?.variant?.size === toRemove?.variant?.size
+                        );
+                    });
+
+                    await updateDoc(cartRef, { cartItems });
+                    dispatch(initCart(cartItems));
+                }
+            } else {
+                let localCart = JSON.parse(localStorage.getItem(LOCAL_CART_KEY)) || [];
+
+                localCart = localCart.filter(item => {
+                    return !itemsToRemove.some(toRemove =>
+                        item.productId === toRemove.productId &&
+                        item.variant.color === toRemove.variant.color &&
+                        item.variant.size === toRemove.variant.size
+                    );
+                });
+
+                localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(localCart));
+                dispatch(initCart(localCart));
+            }
+        } catch (error) {
+            console.error("🔥 Lỗi khi xoá nhiều sản phẩm:", error);
+            message.error("Không thể xoá các sản phẩm khỏi giỏ hàng.");
+        }
+    };
+
 
     return {
         addToCartFunc,
         transferLocalCartToFirebase,
-        getUserCartFromFirebase
+        getUserCartFromFirebase,
+        updateCartItem,
+        removeCartItem,
+        removeMultipleCartItems
     };
 };
 

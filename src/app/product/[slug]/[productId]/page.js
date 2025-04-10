@@ -68,7 +68,7 @@ export default function ProductDetail(props) {
 
 
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         const { color, size } = variant;
 
         if (!color || !size) {
@@ -88,13 +88,11 @@ export default function ProductDetail(props) {
             return;
         }
 
-        addToCartFunc({
+        await addToCartFunc({
             product,
             variant,
             quantity,
         });
-
-        message.success("Đã thêm sản phẩm vào giỏ hàng!");
     };
 
 
@@ -113,11 +111,11 @@ export default function ProductDetail(props) {
         if (!colorVariant) return true;
 
         const sizeObj = colorVariant.sizes.find(s => s.size === variant.size);
-        return !sizeObj || sizeObj.quantity === 0;
+        return !sizeObj || sizeObj?.quantity === 0;
     };
     const getStockQuantity = (color, size) => {
         const variant = product?.variants?.find(
-            (item) => item.color === color
+            (item) => item?.color === color
         );
         if (!variant) return 0;
 

@@ -20,7 +20,7 @@ export default function CollectionHot() {
                 :
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {collections?.map((item, index) => (
-                        <div>
+                        <div key={`gjdf-${index}`}>
                             <img src={item?.collectionImg} className="w-full object-cover rounded-3xl aspect-video" />
                         </div>
                     ))}

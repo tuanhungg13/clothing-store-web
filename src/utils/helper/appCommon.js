@@ -2,6 +2,9 @@ export const DEFAULT_CLASSNAME = "px-4 lg:px-10 xl:px-20 !my-10 "
 
 export const formatCurrency = (value = 0, fixed = 0) => {
     let newValue = value;
+    if (value === 0) {
+        return "0đ"
+    }
     if (fixed && `${value}`.split(".")[1]?.length > fixed) {
         newValue = Number(value).toFixed(fixed);
     }
@@ -9,6 +12,7 @@ export const formatCurrency = (value = 0, fixed = 0) => {
         /\B(?=(\d{3})+(?!\d))/g,
         ","
     );
+
 };
 
 export const formatCurrencyInput = (value = 0, fixed = 0) => {

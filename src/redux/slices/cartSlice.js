@@ -11,22 +11,22 @@ const cartSlice = createSlice({
         },
         addToCart: (state, action) => {
             const { product, quantity = 1, variant } = action?.payload;
-            const { color, size, price } = variant;
+            const { color, size } = variant;
 
-            const existingItem = state.items.find(item =>
-                item.productId === product?.productId &&
-                item.color === color &&
-                item.size === size
+            const existingItem = state?.items?.find(item =>
+                item?.productId === product?.productId &&
+                item?.variant?.color === color &&
+                item?.variant?.size === size
             );
 
             if (existingItem) {
                 existingItem.quantity += quantity;
             } else {
-                state.items.push({
+                state?.items?.push({
                     productId: product?.productId,
                     productName: product?.productName,
                     image: product?.images[0],
-                    price: price,
+                    price: product?.price,
                     variant: variant,
                     quantity
                 });

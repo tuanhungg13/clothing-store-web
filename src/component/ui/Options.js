@@ -46,12 +46,12 @@ const Options = (props) => {
                     <div className="p-2" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                         {options?.map((option, index) =>
                             option?.href ?
-                                <Link onClick={() => setIsOpen(false)} href={option?.href} className={itemClassName} role="menuitem">
+                                <Link onClick={() => setIsOpen(false)} href={option?.href} key={`fsjf-${index}`} className={itemClassName} role="menuitem">
                                     {option?.icon}
                                     <p>{option?.label}</p>
                                 </Link>
                                 :
-                                <div onClick={() => onClick(option)} className={itemClassName} role="menuitem">
+                                <div onClick={() => onClick(option)} className={itemClassName} key={`fsjf-${index}`} role="menuitem">
                                     {option?.icon}
                                     <p>{option?.label}</p>
                                 </div>

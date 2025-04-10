@@ -1,3 +1,4 @@
+'use client'
 import React from "react";
 import { logo } from "@/assets";
 import { FaPhone, FaFacebookF, FaFacebookMessenger } from "react-icons/fa";
@@ -5,7 +6,15 @@ import { SiZalo } from "react-icons/si";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { AiOutlinePhone } from "react-icons/ai";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+const route = [
+    { name: "home", route: "/", label: "Trang chủ" },
+    { name: "products", route: "/products", label: "Sản phẩm" },
+    { name: "about", route: "/about", label: "Giới thiệu" }
+]
 export default function Footer() {
+    const pathname = usePathname();
+
     return (
         <div className="footer px-4 pt-10 xl:px-20 bg-bgSecondary">
             <Link href={"/"} className="flex items-center gap-2">
@@ -30,7 +39,10 @@ export default function Footer() {
 
                 <div>
                     <div className="mb-4 font-semibold text-md md:text-lg">Liên kết</div>
-                    <div className="leading-10 flex flex-col ">
+                    <div className="flex flex-col gap-2 ">
+                        {route?.map((item, index) => (
+                            <Link href={item?.route} key={`ghd-${index}`} className={`hover:text-primary ${pathname === item?.route ? "text-primary" : ""}`}>{item?.label}</Link>
+                        ))}
                     </div>
                 </div>
 

@@ -1,38 +1,35 @@
 "use client"
-import React, { useEffect, useRef, useState } from "react";
-// import { formatCurrency, numberPattern } from "../../../helper/common";
+import React, { use, useEffect, useRef, useState } from "react";
 import { RiDeleteBin7Line } from "react-icons/ri";
 import { FaArrowRight } from "react-icons/fa";
 import { FaCheckCircle } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
-import { Input, Button, ModalNotification } from "s-platform-landing-section";
-import { numberPattern, formatCurrency } from "@/utils/helpers/common";
-import dayjs from "dayjs";
-import CartController from "@/controllers/CartController";
-import FormCheckout from "./FormCheckout";
-import OrderController from "@/controllers/OrderController";
 import { FaCartPlus } from "react-icons/fa";
-import { ProductImage } from "s-platform-landing-section";
 import { debounce } from "lodash";
-
+import useCartController from "@/hook/useCartController";
+import { noImg } from "@/assets";
+import { formatCurrency } from "@/utils/helper/appCommon";
+import { Button, Form, message } from "antd";
+import FormCheckout from "./FormCheckout";
+import useOrderController from "@/hook/useOrderController";
+import { serverTimestamp } from "firebase/firestore";
 const Cart = (props) => {
-    const { isCheckout,
+    const {
+        isCheckout = true,
         setIsCheckout = () => { }
     } = props
 
     const [checkAll, setCheckAll] = useState(false);
     const [chosenProducts, setChosenProducts] = useState([])
+    const [form] = Form.useForm();
 
     const [discount, setDiscount] = useState(0);
-    const [orderSuccessInfo, setOrderSuccessInfo] = useState({});
-    const [isOpenModal, setIsOpenModal] = useState(false);
-    const formCheckoutRef = useRef(null);
     const cartItems = useSelector(state => state?.cart?.items)
     const shadowRef = useRef(null)
     const [isShadow, setIsShadow] = useState(false);
-    const dispatch = useDispatch()
-    const { postOrder = () => { } } = OrderController(props)
-    const { clearCart } = CartController(props)
+    const {
+        addOrder = () => { }
+    } = useOrderController()
     useEffect(() => {
         const handleScroll = () => {
             if (shadowRef?.current) {
@@ -55,10 +52,14 @@ const Cart = (props) => {
     }, []);
 
     useEffect(() => {
-        const selectedProducts = cartItems?.filter(item => chosenProducts?.some(product => product?.variantId === item?.variantId));
+        const selectedProducts = cartItems?.filter(product => chosenProducts?.some(item => item?.productId === product?.productId && item?.color === product?.color && item?.size === product?.size));
         console.log("check selectedProducts", selectedProducts)
         setChosenProducts(selectedProducts);
     }, [cartItems])
+
+    useEffect(() => {
+        console.log("choosen:", chosenProducts)
+    }, [chosenProducts])
 
     const handleCheckAll = (event) => {
         const { checked } = event.target;
@@ -76,41 +77,51 @@ const Cart = (props) => {
 
 
     const handleTotalPrice = () => {
-        const totalPrice = chosenProducts?.reduce((sum, element) => sum + (element?.variantPrice * element?.quantity), 0)
+        const totalPrice = chosenProducts?.reduce((sum, element) => sum + (element?.price * element?.quantity), 0)
         return totalPrice
     }
 
-    const handleCheckProducts = (event) => {
-        const { value, checked } = event.target
-        const products = cartItems?.find(item => item?.variantId == value);
+    const handleCheckProducts = (event, product) => {
+        const { checked } = event.target
+        const products = cartItems?.find(item => item?.productId === product?.productId && item?.color === product?.color && item?.size === product?.size);
+        console.log("check::::", checked, product)
         if (checked) {
             setChosenProducts(prev => ([...prev, products]))
         }
         else {
-            setChosenProducts(prev => prev.filter(item => item?.variantId != value))
+            setChosenProducts(prev => prev.filter(item => !(item?.productId === product?.productId && item?.color === product?.color && item?.size === product?.size)))
         }
     }
 
     const handleSubmit = async () => {
-        const formCheckoutValidation = formCheckoutRef?.current?.validateForm();
-        if (formCheckoutValidation && chosenProducts?.length > 0) {
-            const orderInfo = formCheckoutRef?.current?.getValue()
-            const orderData = {
-                ...orderInfo,
-                chosenProducts
+        try {
+            const {
+                customerName,
+                phoneCustomer,
+                province,
+                district,
+                ward,
+                address,
+                note
+            } = form.getFieldValue();
+            await form.validateFields()
+            const data = {
+                customerName,
+                phoneCustomer,
+                province,
+                district,
+                ward,
+                address,
+                orderItems: chosenProducts,
+                paymentId: null,
+                status: "PENDING",
+                orderDate: serverTimestamp(),
+                note: note
             }
-
-            const res = await postOrder(orderData);
-            if (res?.data?.status?.code === "200") {
-                setOrderSuccessInfo(res?.data?.data);
-                formCheckoutRef?.current?.setValue()
-                dispatch(clearCart(chosenProducts))
-                setIsOpenModal(true)
-                setChosenProducts([])
-            }
-
+            await addOrder(data)
+        } catch (error) {
+            console.log(error)
         }
-
     }
 
     return (
@@ -131,9 +142,9 @@ const Cart = (props) => {
                             <div className="min-w-32 text-center">Hành động</div>
                         </div>
                         {cartItems?.length > 0 ? cartItems?.map((item, index) =>
-                            <CartItem item={item} key={item?.variantId}
+                            <CartItem item={item} key={`${item?.productId}-${item?.variant?.color}-${item?.variant?.size}`}
                                 chosenProducts={chosenProducts}
-                                onChange={(event) => { handleCheckProducts(event) }}
+                                onChange={(event) => { handleCheckProducts(event, item) }}
                             />
                         )
                             :
@@ -161,15 +172,16 @@ const Cart = (props) => {
                                 <div className="min-w-32 text-primary text-lg font-medium	">{formatCurrency(handleTotalPrice())}</div>
                             </div>
                         </div>
-                        {chosenProducts?.length > 0 ? <Button
-                            className="col-span-5 mt-2 md:mt-0 "
-                            label={
-                                <div className="flex items-center justify-center bg-primary text-Button gap-2">
+                        {chosenProducts?.length > 0 ?
+                            <Button
+                                onClick={() => { setIsCheckout(false) }}
+                                className="col-span-5 mt-2 md:mt-0 btn-green-color"
+                            >
+                                <div className="flex items-center justify-centertext-Button gap-2">
                                     Đặt hàng <FaArrowRight />
                                 </div>
-                            }
-                            onClick={() => { setIsCheckout(false) }}
-                        /> : null}
+                            </Button>
+                            : null}
 
                     </div>
                 </div>)
@@ -178,7 +190,7 @@ const Cart = (props) => {
                     <div className={`mb-12 mx-4 xl:mx-20 grid grid-cols-1 mt-0 md:grid-cols-5  gap-6`} >
                         <div className="md:col-span-3 bg-bgSecondary h-full rounded-xl">
                             <FormCheckout
-                                ref={formCheckoutRef}
+                                form={form}
                                 label={"Thông tin giao hàng"}
                                 className=" h-max"
                                 labelClassName="text-lg font-semibold"
@@ -204,23 +216,22 @@ const Cart = (props) => {
                                 </div>
                                 {chosenProducts?.length > 0 ?
                                     <Button
-                                        label="ĐẶT HÀNG"
                                         onClick={handleSubmit}
-                                    />
+                                        className="btn-green-color"
+                                    >ĐẶT HÀNG</Button>
                                     : null}
                             </div>
                             <div className="flex flex-col bg-bgSecondary p-6 rounded-xl">
                                 <div className="font-medium text-lg mb-6">Sản phẩm trong đơn ({chosenProducts?.length})</div>
-                                {chosenProducts?.map((item) => {
+                                {chosenProducts?.map((item, index) => {
                                     return (
-                                        <div className="flex gap-6 border-t py-4" key={item?.variantId}>
-                                            <ProductImage product={item}
-                                                className="rounded-full !object-cover" size={48} />
+                                        <div className="flex gap-6 border-t py-4" key={`fsjf-${index}`}>
+                                            <img src={item?.image || noImg?.src} className="w-24 h-24 rounded-full object-cover" />
                                             <div className="flex flex-col gap-2">
                                                 <div className="font-medium">{item?.productName}</div>
-                                                <div className="px-4 py-1 border border-stroke bg-gray6 rounded-md w-max">{item?.variantName}</div>
+                                                <div className="px-4 py-1 border border-stroke bg-gray6 rounded-md w-max">{item?.variant?.color} | {item?.variant?.size}</div>
                                                 <div className="flex gap-4 items-center">
-                                                    <div className="text-primary text-lg font-medium">{formatCurrency(item?.variantPrice)}</div>
+                                                    <div className="text-primary text-lg font-medium">{formatCurrency(item?.price)}</div>
                                                     <div>x{item?.quantity}</div>
                                                 </div>
                                             </div>
@@ -233,33 +244,7 @@ const Cart = (props) => {
                         </div>
                     </div>
                 )}
-            {isOpenModal &&
-                <ModalNotification
-                    isButtonClose={false}
-                >
-                    <div className="bg-white rounded-lg flex flex-col gap-2 shadow-lg p-6 max-w-sm text-center ">
-                        <div className="h-20 mb-4 flex items-center justify-center">
-                            <FaCheckCircle className="h-full text-green-500" style={{ fontSize: "150px" }} />
-                        </div>
-                        <h3 className="text-2xl">Đặt hàng thành công</h3>
-                        <div >Thời gian: {dayjs(orderSuccessInfo?.createdDate)?.format("DD/MM/YYYY")}</div>
-                        <div>Mã đơn hàng: {orderSuccessInfo?.orderNumber}</div>
-                        <p className="mb-6 text-sm text-gray3" >
-                            Chúng tôi sẽ liên hệ ngay với bạn, vui lòng để ý điện thoại để xác nhận đơn hàng.
-                        </p>
-                        <Button
-                            label={
-                                <a className="flex justify-center items-center gap-2" href="/" onClick={() => {
-                                    setIsOpenModal(false)
-                                    setOrderSuccessInfo({})
-                                }}
-                                >Tiếp tục mua sắm <FaArrowRight /></a>
-                            }
-                        />
 
-                    </div>
-                </ModalNotification>
-            }
         </React.Fragment>
     )
 }
@@ -271,50 +256,102 @@ const CartItem = (props) => {
         chosenProducts,
     } = props;
     const [quantity, setQuantity] = useState(item?.quantity);
-    const refInputQuantity = useRef();
     const dispatch = useDispatch();
-    const { updateQuantityFunc, removeFromCartFunc } = CartController(props)
+    const { updateCartItem, removeCartItem } = useCartController()
 
-    const handleChangeQuantity = debounce((item, text) => {
-        setQuantity(parseInt(text));
-        dispatch(updateQuantityFunc(parseInt(text), item))
-    }, 500)
-    const handleRemoveProduct = (variant) => {
-        dispatch(removeFromCartFunc(variant))
+    const debouncedUpdateQuantity = useRef(null); // để giữ function không bị re-create
+
+    useEffect(() => {
+        debouncedUpdateQuantity.current = debounce((newQty) => {
+            updateCartItem({
+                productId: item.productId,
+                variant: item.variant,
+                newQuantity: newQty
+            });
+        }, 500);
+    }, [item]); // đảm bảo chỉ khởi tạo lại nếu item đổi
+
+
+    const handleChangeQuantity = (e) => {
+        if (!e.target.value) { return }
+        const availableStock = getStockQuantity(item?.variant?.color, item?.variant?.size);
+        const value = parseInt(e.target.value);
+        if (!isNaN(value) && value >= 1 && value <= availableStock) {
+            setQuantity(value);
+            debouncedUpdateQuantity.current(value);
+        }
+        if (value > availableStock && !isNaN(value) && value >= 1) {
+            message.error(`Chỉ còn ${availableStock} sản phẩm với lựa chọn này`)
+        }
+    };
+
+    const handleDecrease = () => {
+        const newQty = Math.max(quantity - 1, 1);
+        setQuantity(newQty);
+        debouncedUpdateQuantity.current(newQty);
+    };
+
+    const handleIncrease = () => {
+        const availableStock = getStockQuantity(item?.variant?.color, item?.variant?.size);
+        if (quantity + 1 <= availableStock) {
+            const newQty = quantity + 1;
+            setQuantity(newQty);
+            debouncedUpdateQuantity.current(newQty);
+        }
+        else {
+            message.error(`Sản phẩm chỉ còn ${availableStock} sản phẩm`)
+        }
+
+    };
+
+    const handleRemoveProduct = (item) => {
+        removeCartItem({ productId: item?.productId, variant: item?.variant })
     }
+
+    const getStockQuantity = (color, size) => {
+        const variant = item?.variants?.find(
+            (item) => item.color === color
+        );
+        if (!variant) return 0;
+
+        const sizeObj = variant.sizes?.find((s) => s.size === size);
+        return sizeObj?.quantity || 0;
+    };
+
     return (
         <div className="flex items-center gap-6 border-t py-4 w-max md:w-full">
             <input
                 type="checkbox"
-                checked={chosenProducts?.some(element => element?.variantId === item?.variantId)}
-                value={item?.variantId}
-                onChange={onChange}
+                checked={chosenProducts?.some(
+                    element =>
+                        element?.productId === item?.productId &&
+                        element?.variant?.color === item?.variant?.color &&
+                        element?.variant?.size === item?.variant?.size
+                )}
+                value={item?.productId}
+                onChange={(e) => { onChange(e, item) }}
             />
             <div className="min-w-80 lg:flex-1">
                 <div className="flex gap-4 ">
-                    <ProductImage product={item} className="rounded-full !object-cover" size={80} />
+                    <img src={item?.image || noImg?.src} className="w-20 h-20 object-cover rounded-full" />
                     <div className="flex flex-col gap-2 whitespace-nowrap">
                         <label className="leading-6 w-56 lg:w-full text-wrap line-clamp-2">{item?.productName}</label>
-                        <div className="border border-stroke rounded-md bg-gray6 px-4 py-1 w-max">{item?.variantName}</div>
+                        <div className="border border-stroke rounded-md bg-gray6 text-gray3 px-4 py-1 w-max">{item?.variant?.color} | {item?.variant?.size}</div>
                     </div>
                 </div>
             </div>
-            <div className="min-w-32 text-right">{formatCurrency(item?.variantPrice)}</div>
-            <div className="min-w-32 text-right">
-                <Input
-                    rules={[
-                        { type: "required", message: "Bắt buộc nhập số lượng" },
-                        { type: "pattern", pattern: numberPattern, message: "Số lượng không đúng" }
-                    ]}
-                    defaultValue={quantity}
-                    isQuantity
-                    min={0}
-                    onChange={(text) => handleChangeQuantity(item, parseInt(text))}
-                    ref={refInputQuantity}
-                    wrapClassName={"w-fit mx-auto"}
-                />
+            <div className="min-w-32 text-right">{formatCurrency(item?.price)}</div>
+            <div className="min-w-32 flex justify-center">
+                <div className="flex items-center border w-max">
+                    <button className="p-2 border-r"
+                        onClick={handleDecrease}>-</button>
+                    <input type="text" className="w-8 focus:outline-none focus:ring-0 bg-transparent text-center" value={quantity}
+                        onChange={(e) => { handleChangeQuantity(e) }} />
+                    <button className="p-2 border-s"
+                        onClick={handleIncrease}>+</button>
+                </div>
             </div>
-            <div className="min-w-32 text-right">{formatCurrency(item?.variantPrice * quantity)}</div>
+            <div className="min-w-32 text-right">{formatCurrency(item?.price * quantity)}</div>
             <div className="min-w-32 flex justify-center ">
                 <button type="button" className="flex items-center gap-2 text-danger" onClick={() => { handleRemoveProduct(item) }}>
                     <RiDeleteBin7Line />
