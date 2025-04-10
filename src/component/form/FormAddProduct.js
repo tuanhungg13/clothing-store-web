@@ -106,7 +106,7 @@ const FormAddProduct = (props) => {
                 variants: variants,
                 description: description,
                 sold: 0,
-                rating: 0,
+                totalRating: 0,
                 productType: productType,
                 createdAt: serverTimestamp()
             });
@@ -142,7 +142,7 @@ const FormAddProduct = (props) => {
                 imagesUrl = await handleUploadImages(fileList);
             }
 
-            const productRef = doc(db, "products", data?.id);
+            const productRef = doc(db, "products", data?.productId);
 
             await updateDoc(productRef, {
                 productName: productName,

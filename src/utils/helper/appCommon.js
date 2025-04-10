@@ -37,3 +37,14 @@ export const CATEGORYOPTION = [
     { value: 1, label: 'Giày' },
 ]
 
+export const genLinkProductDetail = (product) => {
+    const slug = product?.productName?.toLowerCase()                                // chuyển về chữ thường
+        .normalize('NFD')                             // tách dấu tiếng Việt
+        .replace(/[\u0300-\u036f]/g, '')              // xoá dấu
+        .replace(/[^a-z0-9\s-]/g, '')                 // xoá ký tự đặc biệt
+        .trim()                                       // xoá khoảng trắng 2 đầu
+        .replace(/\s+/g, '-')                         // thay khoảng trắng bằng dấu gạch ngang
+        .replace(/-+/g, '-');
+    return `/product/${slug}/${product?.productId}`
+}
+

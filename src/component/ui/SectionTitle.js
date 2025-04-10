@@ -3,17 +3,19 @@ import React from "react";
 
 const SectionTitle = (props) => {
     const {
-        data
+        data,
+        isHidden = true
     } = props
 
     return (
         <div className="mb-10">
             {data?.sectionTitle ?
                 <div className="flex justify-between items-center">
-                    <h2 className="text-2xl md:text-4xl font-semibold">{data?.sectionTitle}</h2>
-                    <Link href="/products">
-                        <small className="text-gray3 hover:text-primary">Xem thêm</small>
-                    </Link>
+                    <h2 className="text-2xl md:text-4xl font-semibold font-merienda">{data?.sectionTitle}</h2>
+                    {isHidden &&
+                        <Link href="/products">
+                            <small className="text-gray3 hover:text-primary">Xem thêm</small>
+                        </Link>}
                 </div>
                 : null}
             {data?.sectionDescription ?

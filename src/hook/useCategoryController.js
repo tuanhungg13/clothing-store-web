@@ -46,7 +46,7 @@ const useCategoryController = (props) => {
 
             const snapshot = await getDocs(q);
             const newCategories = snapshot.docs.map(doc => ({
-                id: doc.id,
+                categoryId: doc.id,
                 ...doc.data()
             }));
             console.log(newCategories, snapshot.docs[snapshot.docs.length - 1])

@@ -99,7 +99,7 @@ export default function ProductManage() {
                                 </tr>
                             }
                             {products?.map(((product, index) =>
-                                <tr key={product?.id} className="border-b">
+                                <tr key={product?.productId} className="border-b">
                                     <td className={`${rowClassName} text-center`}>{index + 1}</td>
                                     <td className={`${rowClassName} text-start`}>
                                         <div>

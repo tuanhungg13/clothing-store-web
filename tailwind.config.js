@@ -9,6 +9,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // fontFamily: {
+      //   merienda: ['var(--font-merienda)'], // định nghĩa class font-merienda
+      // },
       colors: {
         primary: "var(--primary, #1F984D)",
         secondary: "var(--secondary)",

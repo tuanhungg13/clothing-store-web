@@ -3,6 +3,15 @@ import "./globals.css";
 import Providers from "@/redux/provider";
 import Navbar from "@/component/navbar/Navbar";
 import Footer from "@/component/footer/Footer";
+import { Merienda } from 'next/font/google';
+
+const merienda = Merienda({
+  subsets: ['latin'],
+  weight: ['400', '700'], // tuỳ bạn cần mấy trọng số
+  variable: '--font-merienda', // dùng để áp dụng với Tailwind
+
+});
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -23,7 +32,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${merienda.variable} antialiased `}
       >
         <Providers>
           <Navbar />

@@ -14,7 +14,7 @@ import { db } from "@/utils/config/configFirebase";
 
 const useProductController = ({ params }) => {
     const [products, setProducts] = useState([]);
-    const [defaultParams] = useState({ size: 5, page: 1 });
+    const [defaultParams] = useState({ size: 12, page: 1 });
     const [loading, setLoading] = useState(false);
     const [totalElements, setTotalElements] = useState(0);
 
@@ -34,12 +34,11 @@ const useProductController = ({ params }) => {
             // Lọc theo productType nếu có
             if (filterParams?.productType != null) {
                 filters.push(where("productType", "==", Number(filterParams?.productType)));
-                console.log("check:::::", filterParams?.productType)
             }
 
             // Lọc thêm các điều kiện khác nếu có (ví dụ categoryId, brand...)
             if (filterParams?.categoryId) {
-                filters.push(where("categoryId", "==", filterParams.categoryId));
+                filters.push(where("categoryId", "==", filterParams?.categoryId));
             }
 
             // Tạo query ban đầu với lọc và sắp xếp
@@ -69,7 +68,7 @@ const useProductController = ({ params }) => {
 
             const productsWithCategory = await Promise.all(
                 snapshot.docs.map(async (docSnap) => {
-                    const product = { id: docSnap.id, ...docSnap.data() };
+                    const product = { productId: docSnap.id, ...docSnap.data() };
 
                     let category = null;
                     if (product.categoryId) {

@@ -19,8 +19,13 @@ import { useDispatch } from "react-redux";
 import { saveUserInfo } from "@/redux/slices/userSlice";
 import { message } from "antd";
 import { useRouter } from "next/navigation";
+import useCartController from "./useCartController";
+import { initCart } from "@/redux/slices/cartSlice";
 const useAuthController = () => {
     const [loading, setLoading] = useState(false);
+    const {
+        transferLocalCartToFirebase = () => { }
+    } = useCartController()
     const dispatch = useDispatch();
     const router = useRouter()
     // Tạo một document user trong Firestore
@@ -90,6 +95,7 @@ const useAuthController = () => {
             if (snapshot.exists()) {
                 dispatch(saveUserInfo(snapshot.data()));
                 window.localStorage.setItem("userInfo", JSON.stringify(snapshot?.data()))
+                transferLocalCartToFirebase(snapshot?.data())
             } else {
                 console.warn("Không tìm thấy dữ liệu user trong Firestore");
             }
@@ -109,7 +115,9 @@ const useAuthController = () => {
         setLoading(true);
         try {
             await signOut(auth);
-            dispatch(saveUserInfo());
+            dispatch(saveUserInfo(null));
+            localStorage.removeItem("userInfo");
+            dispatch(initCart([]))
             console.log("Đăng xuất thành công");
         } catch (error) {
             console.error("Lỗi đăng xuất:", error.message);
