@@ -106,7 +106,7 @@ const FormAddProduct = (props) => {
                 variants: variants,
                 description: description,
                 sold: 0,
-                totalRating: 0,
+                totalRating: 5,
                 productType: productType,
                 createdAt: serverTimestamp()
             });
