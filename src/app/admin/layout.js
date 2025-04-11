@@ -1,8 +1,20 @@
-import React from "react";
+'use client'
+import React, { useEffect } from "react";
 import LeftMenu from "./LeftMenu";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 const AdminLayout = ({ children }) => {
+    const userInfo = useSelector?.((state) => state?.user?.info);
+    const router = useRouter()
+    useEffect(() => {
+        const savedUser = localStorage.getItem("userInfo");
+        if (savedUser && userInfo?.role != "user") return
+        else {
+            router?.push("/")
+        }
+    }, [])
     return (
-        <div className="flex bg-bgSecondary gap-6 pt-6 pr-4">
+        <div className="flex bg-bgSecondary gap-6 pt-6 px-2">
             <LeftMenu />
             {children}
         </div>

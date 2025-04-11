@@ -22,7 +22,8 @@ const useCartController = () => {
 
             if (cartSnap.exists()) {
                 const cartItems = cartSnap.data()?.cartItems || [];
-                dispatch(initCart(cartItems));
+                const listItems = await getInventoryForCartItems(cartItems)
+                dispatch(initCart(listItems));
             } else {
                 message?.error("Đồng bộ giỏ hàng thất bại")
                 dispatch(initCart([]));
@@ -58,7 +59,6 @@ const useCartController = () => {
             productName: product?.productName,
             image: product?.images[0],
             price: product?.price,
-            variants: product?.variants,
             variant,
             quantity
         };
@@ -127,6 +127,8 @@ const useCartController = () => {
     const updateCartItem = async ({ productId, variant, newQuantity }) => {
         try {
             const user = auth?.currentUser;
+            let updatedCartItems = [];
+
             if (user && userInfo?.cartId) {
                 const cartRef = doc(db, 'carts', userInfo.cartId);
                 const cartSnap = await getDoc(cartRef);
@@ -142,9 +144,9 @@ const useCartController = () => {
                     if (matchIndex > -1) {
                         cartItems[matchIndex].quantity = newQuantity;
                         await updateDoc(cartRef, { cartItems });
-                        dispatch(initCart(cartItems));
                     }
-                    message.success("Thay đổi số lượng thành công")
+
+                    updatedCartItems = cartItems;
                 }
             } else {
                 let localCart = JSON.parse(localStorage.getItem(LOCAL_CART_KEY)) || [];
@@ -157,15 +159,21 @@ const useCartController = () => {
                 if (matchIndex > -1) {
                     localCart[matchIndex].quantity = newQuantity;
                     localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(localCart));
-                    dispatch(initCart(localCart));
                 }
-                message.success("Thay đổi số lượng thành công")
+
+                updatedCartItems = localCart;
             }
+
+            const cartWithStock = await getInventoryForCartItems(updatedCartItems);
+            dispatch(initCart(cartWithStock));
+
+            message.success("Thay đổi số lượng thành công");
         } catch (error) {
             console.error("🔥 Lỗi khi cập nhật sản phẩm:", error);
             message.error("Không thể cập nhật số lượng sản phẩm.");
         }
     };
+
 
     const removeCartItem = async ({ productId, variant }) => {
         try {
@@ -244,6 +252,37 @@ const useCartController = () => {
         }
     };
 
+    const getInventoryForCartItems = async (cartItems) => {
+        const updatedItems = [];
+
+        for (const item of cartItems) {
+            const { productId, variant } = item;
+
+            try {
+                const docRef = doc(db, "products", productId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const product = docSnap.data();
+
+                    const colorMatch = product.variants?.find(v => v?.color === variant?.color);
+                    const sizeMatch = colorMatch?.sizes?.find(s => s?.size === variant?.size);
+
+                    const stock = sizeMatch?.quantity ?? 0;
+
+                    updatedItems.push({ ...item, stock });
+                } else {
+                    updatedItems.push({ ...item, stock: 0 });
+                }
+            } catch (error) {
+                console.error(`Lỗi khi lấy tồn kho sản phẩm ${productId}:`, error);
+                updatedItems.push({ ...item, stock: 0 });
+            }
+        }
+
+        return updatedItems;
+    };
+
 
     return {
         addToCartFunc,
@@ -251,7 +290,8 @@ const useCartController = () => {
         getUserCartFromFirebase,
         updateCartItem,
         removeCartItem,
-        removeMultipleCartItems
+        removeMultipleCartItems,
+        getInventoryForCartItems
     };
 };
 

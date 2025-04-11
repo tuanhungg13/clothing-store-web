@@ -16,6 +16,8 @@ import Options from "../ui/Options";
 import useCartController from "@/hook/useCartController";
 import useAuthController from "@/hook/AuthController";
 import { initCart } from "@/redux/slices/cartSlice";
+import { MdOutlineStorefront } from "react-icons/md";
+
 const route = [
     { name: "home", route: "/", label: "Trang chủ" },
     { name: "products", route: "/products", label: "Sản phẩm" },
@@ -30,7 +32,8 @@ const Navbar = () => {
     const userInfo = useSelector?.((state) => state?.user?.info);
     const [isOpen, setIsOpen] = useState(false)
     const {
-        getUserCartFromFirebase = () => { }
+        getUserCartFromFirebase = () => { },
+        getInventoryForCartItems = () => { }
     } = useCartController()
     const dispatch = useDispatch()
     const [totalItem, setTotalItem] = useState("");
@@ -38,16 +41,26 @@ const Navbar = () => {
         logout = () => { }
     } = useAuthController()
     useEffect(() => {
-        const savedUser = localStorage.getItem("userInfo");
-        const cartItems = localStorage.getItem("cartItems")
-        if (savedUser) {
-            getUserCartFromFirebase(JSON.parse(savedUser))
-            dispatch(saveUserInfo(JSON.parse(savedUser)));
-        }
-        else {
-            dispatch(initCart(JSON.parse(cartItems)))
-        }
+        const initialize = async () => {
+            const savedUser = localStorage.getItem("userInfo");
+            const cartItems = localStorage.getItem("cartItems");
+
+            if (savedUser) {
+                getUserCartFromFirebase(JSON.parse(savedUser));
+                dispatch(saveUserInfo(JSON.parse(savedUser)));
+            } else if (cartItems) {
+                const items = await fetchCartLocal(JSON.parse(cartItems));
+                dispatch(initCart(items));
+            }
+        };
+
+        initialize();
     }, []);
+
+    const fetchCartLocal = async (cartItems) => {
+        const listItems = await getInventoryForCartItems(cartItems)
+        return listItems
+    }
 
     useEffect(() => {
         let totalItem = cartItems?.reduce((total, item) => total + item?.quantity, 0);
@@ -58,12 +71,27 @@ const Navbar = () => {
     }, [cartItems]);
 
     const profileOptions = [
-        { label: "Thông tin cá nhân", href: "/profile", icon: <IoInformationCircleOutline size={24} className="text-gray3" /> },
-        // userInfo?.role === "admin" &&
-        // { label: "Quản lí cửa hàng", href: "/admin/products", icon: <IoInformationCircleOutline size={24} className="text-gray3" /> },
-        // ,
-        { label: "Đăng xuất", onClick: logout, icon: <IoLogOutOutline size={24} className="text-gray3" /> },
-    ]
+        {
+            label: "Thông tin cá nhân",
+            href: "/profile",
+            icon: <IoInformationCircleOutline size={24} className="text-gray3" />,
+        },
+        ...(userInfo?.role !== "user"
+            ? [
+                {
+                    label: "Quản lí cửa hàng",
+                    href: "/admin/products",
+                    icon: <MdOutlineStorefront size={24} className="text-gray3" />,
+                },
+            ]
+            : []),
+        {
+            label: "Đăng xuất",
+            onClick: logout,
+            icon: <IoLogOutOutline size={24} className="text-gray3" />,
+        },
+    ];
+
 
     const cart = () => {
         return (

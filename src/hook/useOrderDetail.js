@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/utils/config/configFirebase";
 import { message } from "antd";
-
 const useOrderDetails = ({ orderId }) => {
     const [orderDetail, setOrderDetail] = useState({});
     const [loading, setLoading] = useState(false);
-
     useEffect(() => {
         fetchOrderDetail();
     }, [orderId]);
@@ -40,7 +38,7 @@ const useOrderDetails = ({ orderId }) => {
         try {
             const orderRef = doc(db, "orders", orderId);
             await updateDoc(orderRef, {
-                deliveryStatus: newStatus,
+                status: newStatus,
                 updatedAt: new Date(),
             });
             message.success("Cập nhật trạng thái giao hàng thành công!");

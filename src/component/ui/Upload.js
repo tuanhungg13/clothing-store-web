@@ -4,12 +4,14 @@ import React from "react";
 import { Upload, Image } from "antd";
 import { LuPlus } from "react-icons/lu";
 import { getBase64 } from "@/utils/helper/appCommon";
+import { noImg } from "@/assets";
 const UploadCustom = (props) => {
     const {
         fileList = [],
         fileListUpdate = [],
         setFileList = () => { },
-        setFileListUpdate = () => { }
+        setFileListUpdate = () => { },
+        isAddMulti = true
     } = props
 
     const propsUpload = {
@@ -38,7 +40,12 @@ const UploadCustom = (props) => {
             }
             if (isJpgOrPng && isLt20M) {
                 setFileListUpdate([])
-                setFileList((prev) => [...prev, file]);
+                if (isAddMulti) {
+                    setFileList((prev) => [...prev, file])
+                }
+                else {
+                    setFileList([file])
+                }
             }
 
             return false;
@@ -50,7 +57,7 @@ const UploadCustom = (props) => {
                 <div className="upload-list-item relative" key={index}>
                     <div className="ant-upload-list-item-info">
                         <span className="ant-upload-span rounded-lg">
-                            <Image src={item?.imgData || ""} alt={item?.name} width={100} height={100}
+                            <Image src={item?.imgData || noImg?.src} alt={item?.name} width={100} height={100}
                                 className="ant-upload-list-item-image object-contain rounded-lg" />
                         </span>
                     </div>

@@ -19,7 +19,7 @@ import { message } from "antd";
 import { useRouter } from "next/navigation";
 import useCartController from "./useCartController";
 const useOrderController = (props) => {
-    const { params = {} } = props;
+    // const { params = {} } = props;
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(null);
@@ -31,9 +31,9 @@ const useOrderController = (props) => {
     const {
         removeMultipleCartItems = () => { }
     } = useCartController()
-    useEffect(() => {
-        fetchOrders();
-    }, [params]);
+    // useEffect(() => {
+    //     fetchOrders();
+    // }, [params]);
 
     const fetchOrders = async () => {
         setLoading(true);
@@ -141,11 +141,16 @@ const useOrderController = (props) => {
                     // Cập nhật lại dữ liệu sản phẩm
                     transaction.update(productRef, { variants });
                 }
+                // Tính tổng tiền của đơn hàng
+                const totalPrice = data?.orderItems?.reduce((sum, item) => {
+                    return sum + (item?.price * item?.quantity);
+                }, 0);
 
                 // Sau khi cập nhật hàng tồn, thêm đơn hàng
                 const orderData = {
                     ...data,
                     uid: user?.uid || null,
+                    totalPrice: totalPrice + 30000,
                     createdAt: new Date(),
                 };
 
@@ -198,7 +203,6 @@ const useOrderController = (props) => {
     return {
         orders,
         loading,
-        fetchOrders,
         addOrder,
         updateOrder,
         deleteOrder

@@ -4,7 +4,7 @@ import React from "react";
 const PageTitle = (props) => {
     const {
         data = "",
-        img = "https://iweb247.com/uploads/images/thiet-ke-banner-quang-cao-my-pham.png"
+        img = "https://intphcm.com/data/upload/banner-thoi-trang-nam-dep.jpg"
     } = props;
 
     const sectionData = data?.data;

@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { Table, Spin, Select, Input } from "antd";
-import useOrderController from "@/hook/useOrderController";
+// import useOrderController from "@/hook/useOrderController";
+import useGetListOrder from "@/hook/useGetListOrder";
 import dayjs from "dayjs";
 import { formatCurrency, genLinkOrderDetails } from "@/utils/helper/appCommon";
 import { IoEyeSharp } from "react-icons/io5";
@@ -15,7 +16,7 @@ export default function () {
         orders = [],
         totalElements,
         loading
-    } = useOrderController({ params })
+    } = useGetListOrder({ params })
 
 
     const columns = [
@@ -85,10 +86,10 @@ export default function () {
             key: 'action',
             render: (_, record) => (
                 <div className="text-xl flex gap-2">
-                    <Link href={genLinkOrderDetails(record)}>
+                    <Link href={genLinkOrderDetails(record) + "-view"}>
                         <div className="text-primary"><IoEyeSharp /></div>
                     </Link>
-                    <Link href={genLinkOrderDetails(record)}>
+                    <Link href={genLinkOrderDetails(record) + "-edit"}>
                         <div className="text-warning"><MdOutlineModeEdit /></div>
                     </Link>
                     <div className="text-danger"><MdDelete /></div>

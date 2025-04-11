@@ -9,7 +9,8 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
-    doc
+    doc,
+    serverTimestamp
 } from "firebase/firestore";
 import { db } from "@/utils/config/configFirebase";
 import { useState, useEffect } from "react";
@@ -89,7 +90,7 @@ const useCollectionController = ({ params = {} }) => {
         try {
             await addDoc(collection(db, "collections"), {
                 ...data,
-                createdAt: new Date(), // nhớ thêm field này để orderBy
+                createdAt: serverTimestamp(), // nhớ thêm field này để orderBy
             });
             message.success("Thêm bộ sưu tập thành công!");
             fetchCollections();

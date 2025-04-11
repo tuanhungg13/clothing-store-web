@@ -109,6 +109,8 @@ const Cart = (props) => {
                 orderItems: chosenProducts,
                 paymentId: null,
                 status: "PENDING",
+                discount: 0,
+                shippingPrice: 30000,
                 orderDate: serverTimestamp(),
                 note: note
             }
@@ -202,10 +204,14 @@ const Cart = (props) => {
                                     <div>Giảm giá</div>
                                     <div className="text-primary text-lg font-medium">{formatCurrency(discount)}</div>
                                 </div>
+                                <div className="flex justify-between items-center">
+                                    <div>Phí vận chuyển</div>
+                                    <div className="text-primary text-lg font-medium">{formatCurrency(30000)}</div>
+                                </div>
                                 <div className="border-t border-dashed">
                                     <div className="flex justify-between items-center pt-4">
                                         <div>Tổng thanh toán</div>
-                                        <div className="text-primary text-lg font-medium">{formatCurrency(handleTotalPrice() - discount)}</div>
+                                        <div className="text-primary text-lg font-medium">{formatCurrency(handleTotalPrice() - discount + 30000)}</div>
                                     </div>
                                 </div>
                                 {chosenProducts?.length > 0 ?
@@ -268,34 +274,33 @@ const CartItem = (props) => {
 
     const handleChangeQuantity = (e) => {
         if (!e.target.value) { return }
-        const availableStock = getStockQuantity(item?.variant?.color, item?.variant?.size);
         const value = parseInt(e.target.value);
-        if (!isNaN(value) && value >= 1 && value <= availableStock) {
+        if (!isNaN(value) && value >= 1 && value <= item?.stock) {
             setQuantity(value);
             debouncedUpdateQuantity.current(value);
         }
-        if (value > availableStock && !isNaN(value) && value >= 1) {
-            message.error(`Sản phẩm chỉ còn ${availableStock} sản phẩm`)
+        if (value > item?.stock && !isNaN(value) && value >= 1) {
+            message.error(`Sản phẩm chỉ còn ${item?.stock} sản phẩm`)
         }
     };
 
     const handleDecrease = () => {
+        if (quantity - 1 < 1) return
         const newQty = Math.max(quantity - 1, 1);
         setQuantity(newQty);
         debouncedUpdateQuantity.current(newQty);
     };
 
     const handleIncrease = () => {
-        const availableStock = getStockQuantity(item?.variant?.color, item?.variant?.size);
-        console.log(availableStock)
-        if (quantity + 1 <= availableStock) {
+        if (quantity + 1 <= item?.stock) {
             const newQty = quantity + 1;
             setQuantity(newQty);
+            console.log("check new:", quantity, newQty)
             debouncedUpdateQuantity.current(newQty);
         }
         else {
-            setQuantity(availableStock);
-            message.error(`Sản phẩm chỉ còn ${availableStock} sản phẩm`)
+            setQuantity(item?.stock);
+            message.error(`Sản phẩm chỉ còn ${item?.stock} sản phẩm`)
         }
 
     };
@@ -303,16 +308,6 @@ const CartItem = (props) => {
     const handleRemoveProduct = (item) => {
         removeCartItem({ productId: item?.productId, variant: item?.variant })
     }
-
-    const getStockQuantity = (color, size) => {
-        const variant = item?.variants?.find(
-            (item) => item.color === color
-        );
-        if (!variant) return 0;
-
-        const sizeObj = variant.sizes?.find((s) => s.size === size);
-        return sizeObj?.quantity || 0;
-    };
 
     return (
         <div className="flex items-center gap-6 border-t py-4 w-max md:w-full">

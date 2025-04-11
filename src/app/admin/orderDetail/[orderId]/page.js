@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from "react";
-import { Card, Input, Select, Button, Table, Checkbox } from "antd";
+import React, { useEffect, useState, useRef } from "react";
+import { Card, Input, Select, Button, Table, Spin, Modal, message } from "antd";
 import { FiCalendar, FiSave } from "react-icons/fi";
 import { FaUserAlt, FaShippingFast } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
@@ -9,6 +9,9 @@ import useOrderDetails from "@/hook/useOrderDetail";
 import dayjs from "dayjs";
 import { formatCurrency } from "@/utils/helper/appCommon";
 import { noImg } from "@/assets";
+import OrderPrintView from "@/component/print/OrderPrintView";
+import { useReactToPrint } from "react-to-print";
+import Link from "next/link";
 const { Option } = Select;
 
 const columns = [
@@ -52,12 +55,17 @@ const columns = [
 ];
 
 export default function OrderDetails(props) {
-    const orderId = props?.params?.orderId
+    const params = props?.params?.orderId?.split("-")
     const [statusChange, setStatusChange] = useState(null)
+    const printRef = useRef();
+    const [openPrintPreview, setOpenPrintPreview] = useState(false);
+
+
     const {
         orderDetail = {},
+        loading,
         updateDeliveryStatus = () => { }
-    } = useOrderDetails({ orderId })
+    } = useOrderDetails({ orderId: params?.[0] })
 
     useEffect(() => {
         setStatusChange(orderDetail?.status)
@@ -100,100 +108,168 @@ export default function OrderDetails(props) {
                 );
         }
     };
+
+    const handUpdate = async () => {
+        await updateDeliveryStatus(statusChange)
+    }
+
+    const handleTotal = () => {
+        return orderDetail?.orderItems?.reduce((sum, item) => {
+            return sum + (item?.price * item?.quantity);
+        }, 0);
+    }
+
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        documentTitle: `HoaDon_${orderDetail?.orderId}`,
+        onAfterPrint: () => {
+            // ✅ In xong rồi mới đóng
+            setOpenPrintPreview(false);
+        },
+    });
     return (
         <div className="p-6 bg-gray-50 min-h-screen space-y-6">
             <h2 className="text-xl font-bold">Orders Details</h2>
-            <Card className="rounded-xl shadow ">
-                <div className="flex flex-col gap-6">
-                    <div className="bg-white p-4 flex flex-wrap items-center justify-between gap-4">
-                        <div className="text-lg font-semibold">
-                            Mã đơn hàng: <span className="text-blue-600">{orderDetail?.orderId}</span>
-                            <span className="ms-8">{renderStatus(orderDetail?.status)}</span>
+            <div className="flex gap-4">
+                <Link href={"/admin/orders"}>
+                    <div className="text-primary">Đơn hàng</div>
+
+                </Link>
+                <div>\</div>
+                <div>Chi tiết đơn hàng</div>
+            </div>
+            <Spin spinning={loading} >
+                <Card className="rounded-xl shadow ">
+                    <div className="flex flex-col gap-6">
+                        <div className="bg-white px-4 py-2 flex flex-wrap items-center justify-between gap-4">
+                            <div className="text-lg font-semibold">
+                                Mã đơn hàng: <span className="text-blue-600">{orderDetail?.orderId}</span>
+                                <span className="ms-8">{renderStatus(orderDetail?.status)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-600 border p-2 rounded-lg">
+                                <FiCalendar />
+                                <span>{orderDetail?.orderDate
+                                    ? dayjs(orderDetail?.orderDate?.toDate()).format('DD/MM/YYYY HH:mm')
+                                    : 'N/A'}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <Select
+                                    disabled={params?.[1] === "view" ? true : false}
+                                    value={statusChange}
+                                    className="w-40"
+                                    placeholder="Chọn trạng thái"
+                                    onChange={(value) => { setStatusChange(value) }}
+                                >
+                                    <Option value="PENDING">Đang xử lí</Option>
+                                    <Option value="SHIPPED">Đang giao</Option>
+                                    <Option value="SUCCESS">Hoàn tất</Option>
+                                    <Option value="CANCEL">Hủy</Option>
+                                </Select>
+                                <Button icon={<FiSave />}
+                                    onClick={handUpdate}
+                                    disabled={params?.[1] === "view" ? true : false}
+                                >Lưu</Button>
+                                <Button
+                                    disabled={params?.[1] === "view" ? true : false}
+                                    onClick={() => setOpenPrintPreview(true)} // mở modal
+                                >
+                                    In đơn hàng
+                                </Button>
+
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                            <FiCalendar />
-                            <span>{orderDetail?.orderDate
-                                ? dayjs(orderDetail?.orderDate?.toDate()).format('DD/MM/YYYY HH:mm')
-                                : 'N/A'}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card >
+                                <div className="flex items-center gap-3 mb-2 text-gray-600">
+                                    <FaUserAlt />
+                                    <span className="font-medium">Khách hàng</span>
+                                </div>
+                                <div className="text-sm text-gray-500 space-y-1">
+                                    <p>Họ và tên: {orderDetail?.customerName}</p>
+                                    {/* <p>Email: {orderDetail?.}</p> */}
+                                    <p>Số điện thoại: {orderDetail?.phoneCustomer}</p>
+                                </div>
+                                {/* <Button type="primary" className="mt-4 w-full">View profile</Button> */}
+                            </Card>
+
+                            <Card >
+                                <div className="flex items-center gap-3 mb-2 text-gray-600">
+                                    <FaShippingFast />
+                                    <span className="font-medium">Thông tin giao hàng</span>
+                                </div>
+                                <div className="text-sm text-gray-500 space-y-1">
+                                    <p>Phương thức thanh toán: Thanh toán khi nhận hàng</p>
+                                    <p>Trạng thái: {orderDetail?.status}</p>
+                                </div>
+                            </Card>
+
+                            <Card >
+                                <div className="flex items-center gap-3 mb-2 text-gray-600">
+                                    <MdLocationOn />
+                                    <span className="font-medium">Địa chỉ giao hàng</span>
+                                </div>
+                                <div className="text-sm text-gray-500 space-y-1">
+                                    <p>Địa chỉ: {orderDetail?.address}, {orderDetail?.ward}, {orderDetail?.district}, {orderDetail?.province}</p>
+                                </div>
+                            </Card>
                         </div>
-                        <div className="flex gap-2">
-                            <Select
-                                value={statusChange}
-                                className="w-40"
-                                placeholder="Chọn trạng thái"
-                                onChange={() => { setStatusChange(value) }}
-                            >
-                                <Option value="PENDING">Đang xử lí</Option>
-                                <Option value="SHIPPED">Đang giao</Option>
-                                <Option value="SUCCESS">Hoàn tất</Option>
-                                <Option value="CANCEL">Hủy</Option>
-                            </Select>
-                            <Button icon={<FiSave />}>Lưu</Button>
+                        <Card >
+                            <p className="font-semibold mb-2">Note</p>
+                            <Input.TextArea placeholder="Type some notes"
+                                rows={3} value={orderDetail?.note}
+                                disabled={true} />
+                        </Card>
+                    </div>
+                </Card>
+
+                <Card className="rounded-xl shadow mt-8">
+                    <div className="font-semibold text-lg mb-4">Products</div>
+                    <Table
+                        columns={columns}
+                        dataSource={orderDetail?.orderItems}
+                        pagination={false}
+                        className="mb-6"
+                    />
+                    <div className="flex flex-col gap-2 items-end text-sm text-gray-700">
+                        <div className="flex gap-8">
+                            <div className="w-28 text-start">Thành tiền</div>
+                            <div className="w-28 text-end">{formatCurrency(handleTotal())}
+                            </div>
+                        </div>
+                        <div className="flex gap-8">
+                            <div className="w-28 text-start">Giảm giá</div>
+                            <div className="w-28 text-end">{orderDetail?.discount * 100} %</div>
+                        </div>
+                        <div className="flex gap-8">
+                            <div className="w-28 text-start">Phí vận chuyển</div>
+                            <div className="w-28 text-end">{formatCurrency(orderDetail?.shippingPrice)}</div>
+                        </div>
+                        <div className="flex gap-8 font-bold text-base text-black">
+                            <div className="w-28 text-start">Tổng tiền</div>
+                            <div className="w-28 text-end">{formatCurrency(orderDetail?.totalPrice)}</div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card >
-                            <div className="flex items-center gap-3 mb-2 text-gray-600">
-                                <FaUserAlt />
-                                <span className="font-medium">Khách hàng</span>
-                            </div>
-                            <div className="text-sm text-gray-500 space-y-1">
-                                <p>Họ và tên: {orderDetail?.customerName}</p>
-                                {/* <p>Email: {orderDetail?.}</p> */}
-                                <p>Số điện thoại: {orderDetail?.phoneCustomer}</p>
-                            </div>
-                            <Button type="primary" className="mt-4 w-full">View profile</Button>
-                        </Card>
+                </Card>
+            </Spin>
+            <Modal
+                open={openPrintPreview}
+                onCancel={() => setOpenPrintPreview(false)}
+                onOk={() => {
+                    if (printRef.current) {
+                        handlePrint();
+                    } else {
+                        console.warn("Không tìm thấy ref để in");
+                    }
+                }}
 
-                        <Card >
-                            <div className="flex items-center gap-3 mb-2 text-gray-600">
-                                <FaShippingFast />
-                                <span className="font-medium">Thông tin giao hàng</span>
-                            </div>
-                            <div className="text-sm text-gray-500 space-y-1">
-                                <p>Shipping: { }</p>
-                                <p>Phương thức thanh toán: Thanh toán khi nhận hàng</p>
-                                <p>Trạng thái: {orderDetail?.status}</p>
-                            </div>
-                        </Card>
+                title="Xem trước hóa đơn"
+                width={800}
+                okText="In"
+                cancelText="Hủy"
+            >
+                <OrderPrintView order={orderDetail} ref={printRef} />
+            </Modal>
 
-                        <Card >
-                            <div className="flex items-center gap-3 mb-2 text-gray-600">
-                                <MdLocationOn />
-                                <span className="font-medium">Địa chỉ giao hàng</span>
-                            </div>
-                            <div className="text-sm text-gray-500 space-y-1">
-                                <p>Địa chỉ: {orderDetail?.address}, {orderDetail?.ward}, {orderDetail?.district}, {orderDetail?.province}</p>
-                            </div>
-                        </Card>
-                    </div>
-                    <Card >
-                        <p className="font-semibold mb-2">Note</p>
-                        <Input.TextArea placeholder="Type some notes" rows={3} value={orderDetail?.note} />
-                    </Card>
-                </div>
-
-
-
-            </Card>
-
-
-
-            <Card className="rounded-xl shadow">
-                <div className="font-semibold text-lg mb-4">Products</div>
-                <Table
-                    columns={columns}
-                    dataSource={orderDetail?.orderItems}
-                    pagination={false}
-                    className="mb-6"
-                />
-                <div className="text-right space-y-1 text-sm text-gray-700">
-                    <p>Thành tiền : {orderDetail?.totalPirce}</p>
-                    <p>Giảm giá: {orderDetail?.discount || "0đ"}</p>
-                    <p>Phí vận chuyển: 0đ</p>
-                    <p className="font-bold text-base text-black">Tổng tiền: {orderDetail?.totalPirce} 100đ</p>
-                </div>
-            </Card>
         </div>
     );
 }

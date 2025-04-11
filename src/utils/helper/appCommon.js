@@ -56,3 +56,7 @@ export const genLinkOrderDetails = (order) => {
     return `/admin/orderDetail/${order?.orderId}`
 }
 
+export const COLLECTION_OPTION = [
+    { label: "Nổi bật", value: "1" },
+    { label: "Bình thường", value: "2" },
+];
