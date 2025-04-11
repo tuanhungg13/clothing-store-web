@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from "react";
-import { Table, Spin, Select, Input } from "antd";
+import { Table, Spin, Select, Input, Pagination } from "antd";
 // import useOrderController from "@/hook/useOrderController";
 import useGetListOrder from "@/hook/useGetListOrder";
 import dayjs from "dayjs";
@@ -9,7 +9,7 @@ import { formatCurrency, genLinkOrderDetails } from "@/utils/helper/appCommon";
 import { IoEyeSharp } from "react-icons/io5";
 import { MdOutlineModeEdit, MdDelete } from "react-icons/md";
 import Link from "next/link";
-export default function () {
+export default function Orders() {
     const [params, setParams] = useState({ size: 12, page: 1 })
 
     const {

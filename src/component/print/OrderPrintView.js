@@ -72,5 +72,5 @@ const tdStyle = {
     padding: '8px',
     textAlign: 'center'
 };
-
+OrderPrintView.displayName = 'OrderPrintView';
 export default OrderPrintView;
