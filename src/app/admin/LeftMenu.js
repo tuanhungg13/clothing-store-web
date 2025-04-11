@@ -3,7 +3,9 @@ import { Menu, Drawer } from "antd";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-// import { MenuOutlined } from "@ant-design/icons";
+import { IoIosMenu } from "react-icons/io";
+import { LuBox, LuList } from "react-icons/lu";
+import { MdOutlineCategory, MdOutlineCollections } from "react-icons/md";
 
 export const ROUTE = {
     HOME: { route: "/", label: "Trang chủ" },
@@ -15,10 +17,10 @@ export const ROUTE = {
 }
 
 const MENU_ITEMS = [
-    { key: ROUTE.CATEGORIES.route, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
-    { key: ROUTE.PRODUCTS.route, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
-    { key: ROUTE.ORDER.route, label: <Link href={ROUTE.ORDER.route}>{ROUTE.ORDER.label}</Link> },
-    { key: ROUTE.COLLECTION.route, label: <Link href={ROUTE.COLLECTION.route}>{ROUTE.COLLECTION.label}</Link> },
+    { key: ROUTE.CATEGORIES.route, icon: <MdOutlineCategory size={20} />, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
+    { key: ROUTE.PRODUCTS.route, icon: <LuBox size={20} />, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
+    { key: ROUTE.ORDER.route, icon: <LuList size={20} />, label: <Link href={ROUTE.ORDER.route}>{ROUTE.ORDER.label}</Link> },
+    { key: ROUTE.COLLECTION.route, icon: <MdOutlineCollections size={20} />, label: <Link href={ROUTE.COLLECTION.route}>{ROUTE.COLLECTION.label}</Link> },
 
 ]
 
@@ -45,7 +47,7 @@ export default function LeftMenu(props) {
 
     return (
         <React.Fragment>
-            <div className="hidden lg:block w-60 bg-background p-2 rounded-lg h-full">
+            <div className="hidden lg:block min-w-60 bg-background p-2 rounded-lg h-full">
                 <Menu
                     defaultSelectedKeys={[defaultRoute?.key]}
                     defaultOpenKeys={["2", "3",]}
@@ -54,8 +56,8 @@ export default function LeftMenu(props) {
                     className="!border-0"
                 />
             </div>
-            {/* <div className="block lg:hidden">
-                <div className="cursor-pointer " onClick={() => { setIsOpenMenu(true) }}><MenuOutlined style={{ fontSize: "24px" }} /></div>
+            <div className="block lg:hidden">
+                <div className="cursor-pointer " onClick={() => { setIsOpenMenu(true) }}><IoIosMenu style={{ fontSize: "24px" }} /></div>
                 <Drawer onClose={() => { setIsOpenMenu(false) }} open={isOpenMenu} width={"70vw"}>
                     <Menu
                         defaultSelectedKeys={[defaultRoute?.key]}
@@ -65,7 +67,7 @@ export default function LeftMenu(props) {
                         className="!border-0"
                     />
                 </Drawer>
-            </div> */}
+            </div>
         </React.Fragment>
     )
 }

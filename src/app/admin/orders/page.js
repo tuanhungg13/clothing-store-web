@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from "react";
-import { Table, Spin, Select, Input, Pagination } from "antd";
+import { Table, Spin, Select, Input, Pagination, DatePicker } from "antd";
 // import useOrderController from "@/hook/useOrderController";
 import useGetListOrder from "@/hook/useGetListOrder";
 import dayjs from "dayjs";
@@ -9,6 +9,12 @@ import { formatCurrency, genLinkOrderDetails } from "@/utils/helper/appCommon";
 import { IoEyeSharp } from "react-icons/io5";
 import { MdOutlineModeEdit, MdDelete } from "react-icons/md";
 import Link from "next/link";
+import { Timestamp } from "firebase/firestore";
+
+const { Option } = Select;
+const { RangePicker } = DatePicker;
+
+
 export default function Orders() {
     const [params, setParams] = useState({ size: 12, page: 1 })
 
@@ -137,11 +143,38 @@ export default function Orders() {
         }
     };
 
+    const handleDateChange = (dates) => {
+        if (dates && dates.length === 2) {
+            const fromDate = Timestamp.fromDate(dates[0].toDate());
+            const toDate = Timestamp.fromDate(dates[1].toDate());
+
+            setParams(prev => ({
+                ...prev,
+                fromDate,
+                toDate
+            }));
+        } else {
+            // Nếu clear DatePicker
+            setParams(prev => ({
+                ...prev,
+                fromDate: null,
+                toDate: null
+            }));
+        }
+    };
+
+    const handleSearch = (value) => {
+        setParams(prev => ({ ...prev, orderId: value }))
+    }
+
     return (
-        <div className="h-full bg-background rounded-lg p-4">
-            <div className="flex justify-between items-center mb-10">
-                <h2 className="text-4xl">Đơn hàng</h2>
-                <div className="flex items-center gap-4">
+        <div className="bg-background min-h-screen w-full overflow-x-auto rounded-lg p-4">
+            <div className="flex flex-col w-full lg:flex-row gap-4 lg:justify-between lg:items-center mb-10">
+                <h2 className="text-3xl font-semibold">Đơn hàng</h2>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <RangePicker
+                        inputReadOnly
+                        onChange={handleDateChange} />
                     <Input.Search
                         style={{ width: 250 }}
                         className=""
@@ -149,21 +182,33 @@ export default function Orders() {
                         placeholder={"Tìm kiếm đơn hàng"}
                         enterButton={true}
                         allowClear={true}
-                    // onSearch={(v) => handleSearch(v)}
+                        onSearch={(value) => { handleSearch(value) }}
                     />
-                    <Select style={{ width: 200 }} />
+                    <Select style={{ width: 200 }}
+                        placeholder="Chọn trạng thái"
+                        onChange={(value) => { setParams(prev => ({ ...prev, status: value })) }}
+                        allowClear
+                    >
+                        <Option value="PENDING">Đang xử lí</Option>
+                        <Option value="SHIPPED">Đang giao</Option>
+                        <Option value="SUCCESS">Hoàn tất</Option>
+                        <Option value="CANCEL">Hủy</Option>
+                    </Select>
                 </div>
             </div>
             <Spin spinning={loading}>
-                <Table
-                    dataSource={orders}
-                    columns={columns}
-                    loading={loading}
-                    pagination={false}
-                    sticky={true}
-                    scroll={{ x: "max-content" }}
+                <div className="w-full overflow-x-auto">
+                    <Table
+                        dataSource={orders}
+                        columns={columns}
+                        loading={loading}
+                        pagination={false}
+                        sticky={true}
+                        scroll={{ x: "max-content" }}
 
-                />
+                    />
+                </div>
+
                 {totalElements > params?.size ?
                     <div className="p-4 text-center">
                         <Pagination

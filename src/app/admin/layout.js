@@ -14,7 +14,7 @@ const AdminLayout = ({ children }) => {
         }
     }, [])
     return (
-        <div className="flex bg-bgSecondary gap-6 pt-6 px-2">
+        <div className="flex flex-col lg:flex-row bg-bgSecondary gap-6 pt-6 px-2">
             <LeftMenu />
             {children}
         </div>

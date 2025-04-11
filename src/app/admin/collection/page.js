@@ -182,7 +182,7 @@ const Collections = (props) => {
     return (
         <Row gutter={[12, 12]} className="p-4 bg-background rounded-lg w-full min-h-screen">
             <Col span={24}>
-                <div className="text-xl flex justify-between">
+                <div className="text-3xl font-semibold flex flex-col md:flex-row gap-4  md:justify-between">
                     Bộ sưu tập sản phẩm
                     <div className="flex gap-6">
                         <Select
@@ -211,6 +211,7 @@ const Collections = (props) => {
                     loading={loading}
                     pagination={false}
                     className="mt-4"
+                    scroll={{ x: "max-content" }}
                 />
             </Col>
 

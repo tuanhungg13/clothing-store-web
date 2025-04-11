@@ -96,7 +96,7 @@ const Cart = (props) => {
                 district,
                 ward,
                 address,
-                note
+                note = ""
             } = form.getFieldValue();
             await form.validateFields()
             const data = {

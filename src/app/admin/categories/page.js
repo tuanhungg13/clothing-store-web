@@ -149,8 +149,8 @@ const Categories = (props) => {
     return (
         <Row gutter={[12, 12]} className="p-4 bg-background rounded-lg w-full min-h-screen">
             <Col xs={24} sm={24} md={24} lg={24} xl={24} className='!pr-4'>
-                <div className="text-xl flex justify-between">
-                    Danh mục sản phẩm
+                <div className="text-3xl font-semibold flex flex-col gap-4 md:flex-row md:justify-between">
+                    Danh mục
                     <div className='flex gap-6'>
                         <Select
                             options={[{ label: "Tất cả", value: 4 }, ...CATEGORYOPTION,]}

@@ -52,8 +52,8 @@ export default function ProductManage() {
     return (
         <div className={`bg-background w-full rounded-lg`}>
             <div className="h-screen w-full p-4">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-2xl lg:text-4xl font-semibold">Sản phẩm</h2>
+                <div className="flex flex-col md:flex-row gap-4 md:justify-between md:items-center">
+                    <h2 className="text-3xl font-semibold">Sản phẩm</h2>
                     <div className="flex gap-6">
                         <Select
                             options={[{ label: "Tất cả", value: 2 }, ...CATEGORYOPTION,]}
@@ -75,7 +75,7 @@ export default function ProductManage() {
                     </div>
 
                 </div>
-                <div className="hidden md:block overflow-x-auto mt-8">
+                <div className="overflow-x-auto mt-8">
                     <table className="table-auto w-full border-collapse rounded-xl">
                         <thead>
                             <tr className="bg-gray-100">

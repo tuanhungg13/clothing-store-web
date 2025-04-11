@@ -11,6 +11,7 @@ import {
     doc,
     updateDoc,
     deleteDoc,
+    setDoc,
     runTransaction
 } from "firebase/firestore";
 
@@ -145,16 +146,18 @@ const useOrderController = (props) => {
                 const totalPrice = data?.orderItems?.reduce((sum, item) => {
                     return sum + (item?.price * item?.quantity);
                 }, 0);
+                const ordersRef = collection(db, "orders");
+                const newDocRef = doc(ordersRef); // <-- Lấy được doc.id trước
 
-                // Sau khi cập nhật hàng tồn, thêm đơn hàng
                 const orderData = {
                     ...data,
+                    orderId: newDocRef.id, // <-- Lưu doc.id vào field orderId
                     uid: user?.uid || null,
                     totalPrice: totalPrice + 30000,
                     createdAt: new Date(),
                 };
 
-                await addDoc(collection(db, "orders"), orderData);
+                await setDoc(newDocRef, orderData);;
             });
 
             await fetchOrders();
