@@ -53,13 +53,8 @@ const Cart = (props) => {
 
     useEffect(() => {
         const selectedProducts = cartItems?.filter(product => chosenProducts?.some(item => item?.productId === product?.productId && item?.color === product?.color && item?.size === product?.size));
-        console.log("check selectedProducts", selectedProducts)
         setChosenProducts(selectedProducts);
     }, [cartItems])
-
-    useEffect(() => {
-        console.log("choosen:", chosenProducts)
-    }, [chosenProducts])
 
     const handleCheckAll = (event) => {
         const { checked } = event.target;
@@ -84,7 +79,6 @@ const Cart = (props) => {
     const handleCheckProducts = (event, product) => {
         const { checked } = event.target
         const products = cartItems?.find(item => item?.productId === product?.productId && item?.color === product?.color && item?.size === product?.size);
-        console.log("check::::", checked, product)
         if (checked) {
             setChosenProducts(prev => ([...prev, products]))
         }
@@ -281,7 +275,7 @@ const CartItem = (props) => {
             debouncedUpdateQuantity.current(value);
         }
         if (value > availableStock && !isNaN(value) && value >= 1) {
-            message.error(`Chỉ còn ${availableStock} sản phẩm với lựa chọn này`)
+            message.error(`Sản phẩm chỉ còn ${availableStock} sản phẩm`)
         }
     };
 
@@ -293,12 +287,14 @@ const CartItem = (props) => {
 
     const handleIncrease = () => {
         const availableStock = getStockQuantity(item?.variant?.color, item?.variant?.size);
+        console.log(availableStock)
         if (quantity + 1 <= availableStock) {
             const newQty = quantity + 1;
             setQuantity(newQty);
             debouncedUpdateQuantity.current(newQty);
         }
         else {
+            setQuantity(availableStock);
             message.error(`Sản phẩm chỉ còn ${availableStock} sản phẩm`)
         }
 

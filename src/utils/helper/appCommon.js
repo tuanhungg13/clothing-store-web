@@ -52,3 +52,7 @@ export const genLinkProductDetail = (product) => {
     return `/product/${slug}/${product?.productId}`
 }
 
+export const genLinkOrderDetails = (order) => {
+    return `/admin/orderDetail/${order?.orderId}`
+}
+

@@ -9,17 +9,14 @@ export const ROUTE = {
     HOME: { route: "/", label: "Trang chủ" },
     CATEGORIES: { route: "/admin/categories", label: "Danh mục" },
     PRODUCTS: { route: "/admin/products", label: "Sản phẩm" },
-    ABOUT: { route: "/about", label: "Bài viết giới thiệu" },
+    ORDER: { route: "/admin/orders", label: "Đơn hàng" },
 
-
-
-    //    NEWS: {route: "/news", label: "Tin tức"},
-    //    NEWS_DETAIL: {route: "/news/:slug/:languageCode"},
 }
 
 const MENU_ITEMS = [
     { key: ROUTE.CATEGORIES.route, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
     { key: ROUTE.PRODUCTS.route, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
+    { key: ROUTE.ORDER.route, label: <Link href={ROUTE.ORDER.route}>{ROUTE.ORDER.label}</Link> },
 ]
 
 export default function LeftMenu(props) {
