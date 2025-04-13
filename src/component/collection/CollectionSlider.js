@@ -38,7 +38,7 @@ export default function CollectionSlider() {
                                 <div className="text-6xl z-10">{item?.content}</div>
                             </div>
                             <div className="bg-black/50 absolute top-0 left-0 w-full h-full"></div>
-                            <img src={item?.collectionImg} className="w-full h-[90vh] object-cover aspect-video" />
+                            <img src={item?.collectionImg} className="w-full h-[90vh] object-top object-cover aspect-video" />
                         </div>
                     ))}
                 </Slider>

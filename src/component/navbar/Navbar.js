@@ -7,21 +7,23 @@ import Link from "next/link";
 import { IoCartOutline, IoChevronDownOutline, IoInformationCircleOutline, IoLogOutOutline, IoMenu, IoPersonCircleOutline } from "react-icons/io5";
 import { useSelector, useDispatch } from "react-redux"
 import { Button, Drawer } from "antd";
+import { IoHomeOutline } from "react-icons/io5";
 import { FiHome, FiBox, FiPhoneCall, FiLogIn } from "react-icons/fi";
-import { PiHandHeartBold } from "react-icons/pi";
 import { FaRegNewspaper, FaUserCircle } from "react-icons/fa";
-import { TbCategory } from "react-icons/tb";
+import { HiOutlineUserCircle } from "react-icons/hi2";
+
 import { saveUserInfo } from "@/redux/slices/userSlice";
 import Options from "../ui/Options";
 import useCartController from "@/hook/useCartController";
 import useAuthController from "@/hook/AuthController";
 import { initCart } from "@/redux/slices/cartSlice";
 import { MdOutlineStorefront } from "react-icons/md";
+import { GrHistory } from "react-icons/gr";
 
 const route = [
-    { name: "home", route: "/", label: "Trang chủ" },
-    { name: "products", route: "/products", label: "Sản phẩm" },
-    { name: "about", route: "/about", label: "Giới thiệu" }
+    { name: "home", route: "/", label: "Trang chủ", icon: <IoHomeOutline size={24} className="text-gray3" /> },
+    { name: "products", route: "/products", label: "Sản phẩm", icon: <FiBox size={24} className="text-gray3" /> },
+    { name: "about", route: "/about", label: "Giới thiệu", icon: <IoInformationCircleOutline size={24} className="text-gray3" /> },
 ]
 
 
@@ -74,13 +76,18 @@ const Navbar = () => {
         {
             label: "Thông tin cá nhân",
             href: "/profile",
-            icon: <IoInformationCircleOutline size={24} className="text-gray3" />,
+            icon: <HiOutlineUserCircle size={24} className="text-gray3" />,
+        },
+        {
+            label: "Lịch sử mua hàng",
+            href: "/orders",
+            icon: <GrHistory size={20} className="text-gray3 mr-1" />,
         },
         ...(userInfo?.role !== "user"
             ? [
                 {
                     label: "Quản lí cửa hàng",
-                    href: "/admin/products",
+                    href: "/admin/dashboard",
                     icon: <MdOutlineStorefront size={24} className="text-gray3" />,
                 },
             ]
@@ -176,16 +183,20 @@ const Navbar = () => {
                 <div className="flex flex-col gap-2">
                     {route?.map((item, index) => (
                         <Link href={item?.route} key={`ghd-${index}`}
-                            className={`p-2 hover:text-primary ${pathname === item?.route ? " text-primary bg-gray6 rounded-lg hover:bg-gray6" : ""}`}
+                            className={`p-2 flex gap-2 px-4 py-2 hover:text-primary ${pathname === item?.route ? " text-primary bg-gray6 rounded-lg hover:bg-gray6" : ""}`}
                             onClick={() => { setIsOpen(false) }}
-                        >{item?.label}</Link>
+                        >
+                            <div>{item?.icon}</div>
+                            <div>{item?.label}</div>
+                        </Link>
                     ))}
+                    <hr />
                     {userInfo ?
                         profileOptions?.map((option, index) =>
                         (option?.href ?
                             <Link onClick={() => setIsOpen(false)} key={`hkfdfh-${index}`} href={option?.href}
                                 className={"flex gap-2 px-4 py-2 text-black hover:bg-gray-100 rounded cursor-pointer"} role="menuitem">
-                                <IoPersonCircleOutline size={24} />
+                                <div>{option?.icon}</div>
                                 <p>{option?.label}</p>
                             </Link>
                             :
@@ -200,7 +211,7 @@ const Navbar = () => {
                         :
                         <Link href={"/login"} onClick={() => setIsOpen(false)}>
                             <div className={`py-2 px-4 flex items-center gap-4`}>
-                                <FiLogIn size={20} />
+                                <FiLogIn size={20} className="text-gray3" />
                                 Đăng nhập
                             </div>
                         </Link>

@@ -70,3 +70,13 @@ export const formatAddress = (address) => {
     return parts.join(", ");
 };
 
+export const VIETNAM_PHONE_PATTERN = /^(?:\+84|0)\d{9}$/
+
+
+export const mappingStatus = {
+    PENDING: "Đang xử lí",
+    SHIPPED: "Đang giao hàng",
+    CANCEL: "Hủy",
+    SUCCESS: "Hoàn tất"
+
+}

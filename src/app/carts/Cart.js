@@ -12,7 +12,8 @@ import { formatCurrency } from "@/utils/helper/appCommon";
 import { Button, Form, message } from "antd";
 import FormCheckout from "./FormCheckout";
 import useOrderController from "@/hook/useOrderController";
-import { serverTimestamp } from "firebase/firestore";
+import { serverTimestamp } from "firebase/firestore"
+import { initCart } from "@/redux/slices/cartSlice";
 const Cart = (props) => {
     const {
         isCheckout = true,
@@ -22,11 +23,15 @@ const Cart = (props) => {
     const [checkAll, setCheckAll] = useState(false);
     const [chosenProducts, setChosenProducts] = useState([])
     const [form] = Form.useForm();
-
+    const dispatch = useDispatch()
     const [discount, setDiscount] = useState(0);
     const cartItems = useSelector(state => state?.cart?.items)
     const shadowRef = useRef(null)
     const [isShadow, setIsShadow] = useState(false);
+    const {
+        getInventoryForCartItems = () => { },
+        getUserCartFromFirebase = () => { }
+    } = useCartController()
     const {
         addOrder = () => { }
     } = useOrderController()
@@ -56,6 +61,26 @@ const Cart = (props) => {
         setChosenProducts(selectedProducts);
     }, [cartItems])
 
+    useEffect(() => {
+        const initialize = async () => {
+            const savedUser = localStorage.getItem("userInfo");
+            const cartItem = localStorage.getItem("cartItems");
+
+            if (savedUser) {
+                getUserCartFromFirebase(JSON.parse(savedUser));
+            } else if (cartItem) {
+                const items = await fetchCartLocal(JSON.parse(cartItem));
+                dispatch(initCart(items));
+            }
+        };
+
+        initialize();
+    }, []);
+
+    const fetchCartLocal = async (cartItems) => {
+        const listItems = await getInventoryForCartItems(cartItems)
+        return listItems
+    }
     const handleCheckAll = (event) => {
         const { checked } = event.target;
         if (checked) {

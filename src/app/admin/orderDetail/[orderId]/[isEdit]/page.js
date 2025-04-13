@@ -7,7 +7,7 @@ import { FaUserAlt, FaShippingFast } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import useOrderDetails from "@/hook/useOrderDetail";
 import dayjs from "dayjs";
-import { formatCurrency } from "@/utils/helper/appCommon";
+import { formatCurrency, mappingStatus } from "@/utils/helper/appCommon";
 import { noImg } from "@/assets";
 import OrderPrintView from "@/component/print/OrderPrintView";
 import { useReactToPrint } from "react-to-print";
@@ -16,13 +16,6 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 const { Option } = Select;
 
-const mappingStatus = {
-    PENDING: "Đang xử lí",
-    SHIPPED: "Đang giao hàng",
-    CANCEL: "Hủy",
-    SUCCESS: "Hoàn tất"
-
-}
 
 const columns = [
     {
@@ -129,7 +122,7 @@ export default function OrderDetails(props) {
     };
 
     const handUpdate = async () => {
-        await updateDeliveryStatus(statusChange)
+        await updateDeliveryStatus(statusChange, orderDetail?.orderItems)
     }
 
     const handleTotal = () => {

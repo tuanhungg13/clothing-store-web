@@ -31,7 +31,6 @@ export default function Customers() {
         loading
     } = useCustomerController({ params })
 
-    console.log(userInfo)
     const columns = [
         {
             title: "STT",

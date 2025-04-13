@@ -125,16 +125,16 @@ export default function ProductDetail(props) {
 
     return (
         <div className={`bg-background`}>
-            <div className={`${DEFAULT_CLASSNAME} flex gap-4 my-6`}>
+            <div className={`${DEFAULT_CLASSNAME} flex gap-4 my-6 overflow-x-auto`}>
                 <Link href="/">
-                    <div className="text-primary">Trang chủ </div>
+                    <div className="text-primary whitespace-nowrap">Trang chủ </div>
                 </Link>
                 <div>\</div>
                 <Link href={"/products"}>
-                    <div className="text-primary">Sản phẩm</div>
+                    <div className="text-primary whitespace-nowrap">Sản phẩm</div>
                 </Link>
                 <div>\</div>
-                <div>{product?.productName}</div>
+                <div className="whitespace-nowrap">{product?.productName}</div>
             </div>
             <div className={`px-4 md:px-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 bg-background ${DEFAULT_CLASSNAME}`}>
                 <div className="grid grid-cols-5 gap-6">

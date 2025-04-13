@@ -4,6 +4,7 @@ import { Form, Input, Button, Typography, Spin } from "antd";
 import { FaApple, FaGoogle, FaFacebookF } from "react-icons/fa";
 import AuthController from "@/hook/AuthController";
 import { useRouter } from "next/navigation";
+import { VIETNAM_PHONE_PATTERN } from "@/utils/helper/appCommon";
 const { Title, Text, Link } = Typography;
 
 const RegisterForm = () => {
@@ -13,13 +14,13 @@ const RegisterForm = () => {
     } = AuthController()
     const router = useRouter();
     const onFinish = async (values) => {
-        const { name, email, password } = values;
+        const { name, email, password, phoneNumber } = values;
         try {
             await register({
                 email,
                 password,
                 fullName: name,
-                phoneNumber: "", // thêm trường nếu bạn có
+                phoneNumber: phoneNumber || "", // thêm trường nếu bạn có
             });
         } catch (error) {
             console.error("Lỗi khi đăng ký:", error.message);
@@ -47,6 +48,15 @@ const RegisterForm = () => {
                             rules={[{ required: true, type: "email", message: "Vui lòng nhập email hợp lệ!" }]}
                         >
                             <Input placeholder="Email" />
+                        </Form.Item>
+                        <Form.Item
+                            name="phoneNumber"
+                            rules={[
+                                { required: true, message: "Vui lòng nhập số điện thoại" },
+                                { pattern: VIETNAM_PHONE_PATTERN, message: "Số điện thoại không hợp lệ" }
+                            ]}
+                        >
+                            <Input placeholder="Nhập số điện thoại" />
                         </Form.Item>
 
                         <Form.Item

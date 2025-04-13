@@ -9,6 +9,9 @@ import {
     startAfter,
     startAt,
     endAt,
+    doc,
+    updateDoc,
+    increment,
     getCountFromServer,
     FieldPath
 } from "firebase/firestore";
@@ -43,10 +46,13 @@ const useGetListOrder = (props) => {
 
             let baseQuery;
             let filters = [];
-
+            if (filterParams?.uid) {
+                filters.push(where("uid", "==", filterParams?.uid));
+            }
             if (filterParams?.orderId) {
                 baseQuery = query(
                     collection(db, "orders"),
+                    ...(filterParams?.uid ? [where("uid", "==", filterParams?.uid)] : []),
                     orderBy("__name__"),
                     startAt(filterParams.orderId),
                     endAt(filterParams.orderId + "\uf8ff")
@@ -181,6 +187,40 @@ const useGetListOrder = (props) => {
         }
     };
 
+    const updateDeliveryStatus = async (orderId, newStatus, orderItems, callbackSuccess) => {
+        setLoading(true);
+        try {
+            const orderRef = doc(db, "orders", orderId);
+
+            // Cập nhật trạng thái đơn hàng
+            await updateDoc(orderRef, {
+                status: newStatus,
+                updatedAt: new Date(),
+            });
+
+            // Nếu đơn hàng đã giao thành công -> cập nhật sold cho từng sản phẩm
+            if (newStatus == "SUCCESS" && Array.isArray(orderItems)) {
+                const updatePromises = orderItems.map(async (item) => {
+                    const productRef = doc(db, "products", item.productId);
+                    await updateDoc(productRef, {
+                        sold: increment(item.quantity),
+                    });
+                });
+
+                await Promise.all(updatePromises);
+            }
+
+            message.success("Cập nhật trạng thái giao hàng thành công!");
+            callbackSuccess();
+        } catch (error) {
+            console.error("❌ Lỗi cập nhật trạng thái giao hàng:", error);
+            message.error("Cập nhật trạng thái giao hàng thất bại!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     const groupOrdersByDate = (orders) => {
         const grouped = {};
 
@@ -216,7 +256,8 @@ const useGetListOrder = (props) => {
         loading,
         totalElements,
         orderCountByDate,
-        getTotalRevenueAndOrders
+        getTotalRevenueAndOrders,
+        updateDeliveryStatus
     }
 }
 

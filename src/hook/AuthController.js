@@ -48,6 +48,7 @@ const useAuthController = () => {
                 fullName: additionalData.fullName || user.displayName || "",
                 phoneNumber: additionalData.phoneNumber || "",
                 role: "user",
+                coupons: [],
                 cartId: cartRef.id, // Gán cartId
                 createdAt: serverTimestamp(),
             };
@@ -70,7 +71,7 @@ const useAuthController = () => {
                 displayName: fullName,
             });
 
-            const userData = await createUserInFirestore(user, { fullName, phoneNumber });
+            await createUserInFirestore(user, { fullName, phoneNumber });
             router.push("/login")
             message.success("Đăng ký thành công")
         } catch (error) {
@@ -126,11 +127,37 @@ const useAuthController = () => {
         }
     };
 
+    const updateUserInfo = async (uid, updatedData, callbackSuccess) => {
+        setLoading(true);
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, updatedData);
+
+            // Nếu đang chỉnh user hiện tại thì update cả Redux/localStorage
+            const updatedUserSnapshot = await getDoc(userRef);
+            const updatedUser = updatedUserSnapshot.data();
+
+            const currentUserInfo = JSON.parse(localStorage.getItem("userInfo"));
+            if (currentUserInfo?.uid === uid) {
+                dispatch(saveUserInfo(updatedUser));
+                localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+            }
+            callbackSuccess()
+            message.success("Cập nhật thông tin người dùng thành công");
+        } catch (error) {
+            console.error("Lỗi cập nhật người dùng:", error.message);
+            message.error("Cập nhật thất bại");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         register,
         login,
         logout,
         loading,
+        updateUserInfo
     };
 };
 

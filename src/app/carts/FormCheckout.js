@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { useSelector } from "react-redux";
 import { Input, Form } from "antd";
+import { VIETNAM_PHONE_PATTERN } from "@/utils/helper/appCommon";
 const { TextArea } = Input;
 const FormCheckout = (props) => {
     const { label = "",
@@ -11,7 +12,16 @@ const FormCheckout = (props) => {
         form
     } = props
     const userInfo = useSelector(state => state?.user?.info)
-
+    useEffect(() => {
+        form.setFieldsValue({
+            customerName: userInfo?.fullName || "",
+            phoneCustomer: userInfo?.phoneNumber || "",
+            province: userInfo?.address?.province || "",
+            district: userInfo?.address?.district || "",
+            ward: userInfo?.address?.ward || "",
+            address: userInfo?.address?.street || ""
+        });
+    }, [userInfo])
     return (
         <Form
             layout="vertical"
@@ -23,9 +33,9 @@ const FormCheckout = (props) => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Form.Item
+
                     label="Họ và tên"
                     name="customerName"
-                    initialValue={userInfo?.name}
                     rules={[{ required: true, message: "Bắt buộc nhập họ và tên" }]}
                 >
                     <Input placeholder="Nhập họ và tên" className="rounded-lg w-full" />
@@ -34,13 +44,12 @@ const FormCheckout = (props) => {
                 <Form.Item
                     label="Số điện thoại"
                     name="phoneCustomer"
-                    initialValue={userInfo?.phone}
                     rules={[
                         { required: true, message: "Bắt buộc nhập số điện thoại" },
-                        // {
-                        //     pattern: VIETNAM_PHONE_PATTERN,
-                        //     message: "Số điện thoại không hợp lệ!",
-                        // },
+                        {
+                            pattern: VIETNAM_PHONE_PATTERN,
+                            message: "Số điện thoại không hợp lệ!",
+                        },
                     ]}
                 >
                     <Input placeholder="Nhập số điện thoại" className="rounded-lg w-full" />
@@ -86,7 +95,6 @@ const FormCheckout = (props) => {
                 <Form.Item
                     label="Địa chỉ"
                     name="address"
-                    initialValue={userInfo?.address}
                     rules={[
                         { required: true, message: "Bắt buộc nhập địa chỉ" },
                         { pattern: /^.{6,}$/, message: "Địa chỉ phải ít nhất 6 kí tự" },
