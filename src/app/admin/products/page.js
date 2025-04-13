@@ -61,7 +61,7 @@ export default function ProductManage() {
 
     return (
         <div className={`bg-background w-full min-h-screen rounded-lg`}>
-            <div className="h-screen w-full p-4">
+            <div className="w-full p-4">
                 <div className="flex flex-col md:flex-row gap-4 md:justify-between md:items-center">
                     <h2 className="text-3xl font-semibold">Sản phẩm</h2>
                     <div className="flex gap-6">
