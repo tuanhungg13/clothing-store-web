@@ -5,7 +5,8 @@ import { FaApple, FaGoogle, FaFacebookF } from "react-icons/fa";
 import AuthController from "@/hook/AuthController";
 import { useRouter } from "next/navigation";
 import { VIETNAM_PHONE_PATTERN } from "@/utils/helper/appCommon";
-const { Title, Text, Link } = Typography;
+import Link from "next/link";
+const { Title, Text } = Typography;
 
 const RegisterForm = () => {
     const {
@@ -29,7 +30,7 @@ const RegisterForm = () => {
 
     return (
         <Spin spinning={loading}>
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 pb-6">
                 <div className="bg-white p-6 rounded-xl shadow-md w-[350px]">
                     <div className="mb-6 text-center">
                         <Title level={2} className="!mb-2 !font-bold">Đăng ký</Title>
@@ -86,9 +87,9 @@ const RegisterForm = () => {
 
                         <Form.Item>
                             <Button
-                                type="primary"
+                                type="default"
                                 htmlType="submit"
-                                className="w-full rounded-full bg-black hover:opacity-80"
+                                className="w-full text-white rounded-full bg-black hover:!opacity-80 hover:!bg-black hover:!border-none hover:!text-white"
                                 size="large"
                             >
                                 ĐĂNG KÝ
@@ -100,9 +101,6 @@ const RegisterForm = () => {
 
                     <div className="flex justify-center gap-4 mb-4">
                         <div className="border rounded-full p-2 cursor-pointer hover:bg-gray-100">
-                            <FaApple size={20} />
-                        </div>
-                        <div className="border rounded-full p-2 cursor-pointer hover:bg-gray-100">
                             <FaGoogle size={20} className="text-[#DB4437]" />
                         </div>
                         <div className="border rounded-full p-2 cursor-pointer hover:bg-gray-100">
@@ -110,9 +108,9 @@ const RegisterForm = () => {
                         </div>
                     </div>
 
-                    <div className="text-center">
-                        <Text>Bạn đã có tài khoản </Text>
-                        <Link href="#">Đăng nhập</Link>
+                    <div className="flex gap-2 justify-center items-end">
+                        <Text>Bạn đã có tài khoản ?</Text>
+                        <Link href="/login" className="text-blue-500 text-sm">Đăng nhập</Link>
                     </div>
                 </div>
             </div>

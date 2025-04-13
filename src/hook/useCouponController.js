@@ -14,6 +14,7 @@ import {
     arrayUnion,
     getDoc,
     setDoc,
+    serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/utils/config/configFirebase";
 import { message } from "antd";
@@ -78,10 +79,9 @@ const useCouponController = ({ params }) => {
     const createCoupon = async ({ couponData, applyToAll, selectedUsers = [] }) => {
         setLoading(true)
         try {
-            console.log("check ::::", selectedUsers)
             const newCouponRef = await addDoc(collection(db, "coupons"), {
                 ...couponData,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
             });
 
             const couponId = newCouponRef.id;

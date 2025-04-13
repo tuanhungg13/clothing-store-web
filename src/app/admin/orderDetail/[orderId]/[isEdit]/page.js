@@ -177,7 +177,7 @@ export default function OrderDetails(props) {
                                             {orderDetail?.status === "SHIPPED" ? null : <Option value="PENDING">Đang xử lí</Option>}
                                             <Option value="SHIPPED">Đang giao</Option>
                                             {orderDetail?.status === "SHIPPED" ? null : <Option value="CANCEL">Hủy</Option>}
-                                            {userInfo?.role === "admin" ? <Option value="SUCCESS">Hoàn tất</Option> : null}
+                                            {(userInfo?.role == "admin" || userInfo?.role == "salestaff") ? <Option value="SUCCESS">Hoàn tất</Option> : null}
                                         </Select>
                                         <Button icon={<FiSave />}
                                             onClick={handUpdate}

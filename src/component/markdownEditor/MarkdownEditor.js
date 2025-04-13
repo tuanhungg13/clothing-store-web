@@ -21,7 +21,8 @@ const MarkdownEditor = (props) => {
                         'bold italic forecolor | alignleft aligncenter ' +
                         'alignright alignjustify | bullist numlist outdent indent | ' +
                         'removeformat | help',
-                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                    readonly: false
                 }}
                 onChange={(e) => { props?.setValue(e.target.getContent()) }}
             />

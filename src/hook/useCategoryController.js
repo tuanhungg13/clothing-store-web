@@ -49,7 +49,7 @@ const useCategoryController = (props) => {
                 categoryId: doc.id,
                 ...doc.data()
             }));
-            console.log(newCategories, snapshot.docs[snapshot.docs.length - 1])
+            // console.log(newCategories, snapshot.docs[snapshot.docs.length - 1])
             setCategories(prev => lastDoc ? [...prev, ...newCategories] : newCategories);
             setPage(snapshot.docs[snapshot.docs.length - 1] || null);
         } catch (error) {

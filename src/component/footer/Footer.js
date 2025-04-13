@@ -19,7 +19,6 @@ export default function Footer() {
         <div className="footer px-4 pt-10 xl:px-20 bg-bgSecondary">
             <Link href={"/"} className="flex items-center gap-2">
                 <img src={logo.src} className="object-contain" />
-
             </Link>
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-6">
                 <div className=" col-span-2 flex flex-col leading-8 mb-10 sm:mb-0 ">
@@ -60,11 +59,6 @@ export default function Footer() {
                         </a>
                     </div>
                 </div>
-            </div>
-            <hr className="mt-10" />
-            <div className="py-4">
-                <small className="me-5">Bản quyền thuộc công ty cổ phần công nghệ thông minh SFIN.</small>
-                <a href={"#"} target="_blank" ><small className="underline decoration-solid text-primary">Xem điều khoản và chính sách</small></a>
             </div>
         </div>
     )

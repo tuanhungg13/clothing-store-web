@@ -3,6 +3,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     updateProfile,
+    sendEmailVerification,
     signOut,
 } from "firebase/auth";
 import {
@@ -43,12 +44,18 @@ const useAuthController = () => {
 
             // 2. Tạo dữ liệu user
             const newUserData = {
-                uid: user.uid,
-                email: user.email,
-                fullName: additionalData.fullName || user.displayName || "",
-                phoneNumber: additionalData.phoneNumber || "",
+                uid: user?.uid,
+                email: user?.email,
+                fullName: additionalData?.fullName || user?.displayName || "",
+                phoneNumber: additionalData?.phoneNumber || "",
                 role: "user",
                 coupons: [],
+                address: {
+                    province: "",
+                    district: "",
+                    ward: "",
+                    street: ""
+                },
                 cartId: cartRef.id, // Gán cartId
                 createdAt: serverTimestamp(),
             };
@@ -70,10 +77,11 @@ const useAuthController = () => {
             await updateProfile(user, {
                 displayName: fullName,
             });
-
+            await sendEmailVerification(user);
             await createUserInFirestore(user, { fullName, phoneNumber });
-            router.push("/login")
-            message.success("Đăng ký thành công")
+            message.success("Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.", 2, () => {
+                router.push("/login");
+            });
         } catch (error) {
             console.error("Lỗi đăng ký:", error.message);
             throw error;
@@ -88,7 +96,12 @@ const useAuthController = () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-
+            if (!user.emailVerified) {
+                message.warning("Vui lòng xác minh email trước khi đăng nhập.");
+                // Nếu chưa xác thực thì sign out ngay để tránh giữ phiên
+                await auth.signOut();
+                return;
+            }
             // Lấy dữ liệu user từ Firestore
             const userRef = doc(db, "users", user.uid);
             const snapshot = await getDoc(userRef);

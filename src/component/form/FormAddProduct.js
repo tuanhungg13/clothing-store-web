@@ -9,7 +9,7 @@ import { formatCurrencyInput, CATEGORYOPTION } from "@/utils/helper/appCommon";
 import UploadCustom from "../ui/Upload";
 import useCategoryController from "@/hook/useCategoryController";
 import { serverTimestamp } from 'firebase/firestore';
-
+import useCollectionController from "@/hook/useCollectionController";
 const FormAddProduct = (props) => {
     const [params, setParams] = useState({})
     const {
@@ -22,7 +22,9 @@ const FormAddProduct = (props) => {
     const {
         categories = []
     } = useCategoryController({ params })
-
+    const {
+        collections = []
+    } = useCollectionController({ params })
     const [fileList, setFileList] = useState([])
     const [fileListUpdate, setFileListUpdate] = useState([])
     const [form] = Form.useForm();
@@ -51,6 +53,7 @@ const FormAddProduct = (props) => {
         if (!isOpen) {
             setFileList([])
             setFileListUpdate([])
+            setDescription("")
         }
 
     }, [isOpen])
@@ -175,7 +178,8 @@ const FormAddProduct = (props) => {
         }
     };
 
-    const onFinish = () => {
+    const onFinish = (values) => {
+        console.log(values)
         if (Object?.keys(data)?.length > 0) {
             handleUpdateProduct()
         }
@@ -238,7 +242,7 @@ const FormAddProduct = (props) => {
                     <Select
                         options={categories?.map(item => ({
                             label: item?.categoryName,
-                            value: item?.id,
+                            value: item?.categoryId,
                         }))}
                         placeholder="Chọn danh mục"
                     />
@@ -256,7 +260,12 @@ const FormAddProduct = (props) => {
                     />
                 </Form.Item>
                 <Form.Item name="collectionId" label="Bộ sưu tập sản phẩm" >
-                    <Select placeholder="Chọn bộ sưu tập" />
+                    <Select
+                        options={collections?.map(item => ({
+                            label: item?.collectionName,
+                            value: item?.id,
+                        }))}
+                        placeholder="Chọn bộ sưu tập" />
                 </Form.Item>
             </div>
 

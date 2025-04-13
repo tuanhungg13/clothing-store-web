@@ -104,7 +104,7 @@ const Navbar = () => {
         return (
             <Link href="/carts">
                 <div className="relative cursor-pointer">
-                    <IoCartOutline className={"text-primary"} size={30} />
+                    <IoCartOutline className={"text-black"} size={30} />
                     {totalItem ?
                         <small
                             className="absolute aspect-square flex items-center justify-center bg-danger w-5 text-xs rounded-full text-white -top-1 -right-1">
@@ -120,10 +120,12 @@ const Navbar = () => {
 
     return (
         <React.Fragment>
-            <div className="hidden lg:block">
-                <div className=" flex justify-between items-center px-4 lg:px-10 xl:px-20 py-4 bg-bgSecondary sticky top-0 shadow z-50">
+            <div className="hidden lg:block sticky top-0 shadow z-50">
+                <div className=" flex justify-between items-center px-4 lg:px-10 xl:px-20 py-4 bg-bgSecondary ">
                     <div className="flex gap-4 items-center">
-                        <img src={logo.src} className="object-contain" />
+                        <Link href={"/"}>
+                            <img src={logo.src} className="object-contain" />
+                        </Link>
                         <div>
                             {route?.map((item, index) => (
                                 <Link href={item?.route} key={`ghd-${index}`} className={`p-2 hover:text-primary ${pathname === item?.route ? "text-primary" : ""}`}>{item?.label}</Link>
@@ -134,7 +136,8 @@ const Navbar = () => {
                         {cart()}
                         {userInfo ?
                             <div className="flex justify-center">
-                                <FaUserCircle className="text-primary" size={48} />
+                                {userInfo?.avatar ? <img src={userInfo?.avatar} className="w-12 h-12 rounded-full object-cover" /> :
+                                    <FaUserCircle className="text-black" size={48} />}
                                 <div className="ml-2">
                                     <label>Xin chào!</label>
                                     <Options
@@ -150,9 +153,20 @@ const Navbar = () => {
                             </div>
                             :
                             <div className="flex gap-4">
-                                <Link href={"/login"}>
-                                    <Button className="btn-green-color">Đăng nhập</Button>
-                                </Link>
+                                <div className="min-w-28">
+                                    <Link href={"/login"}>
+                                        <Button
+                                            style={{
+                                                transform: "none",
+                                                boxShadow: "none",
+                                                transition: "none",
+                                            }}
+                                            type="default"
+                                            className="w-full text-white bg-black hover:!opacity-80 hover:!bg-black hover:!border-none hover:!text-white"
+                                        >Đăng nhập</Button>
+                                    </Link>
+                                </div>
+
                                 <Button>Đăng ký</Button>
                             </div>
                         }
@@ -161,7 +175,8 @@ const Navbar = () => {
             </div>
 
             <div className="flex justify-between items-center px-4 py-2 lg:hidden block shadow sticky top-0 z-50 bg-bgSecondary">
-                <img src={logo.src} className="object-contain" />
+                <Link href={"/"}>                <img src={logo.src} className="object-contain" />
+                </Link>
                 <div className="flex items-center gap-8">
                     {cart()}
                     <div className="cursor-pointer" onClick={() => { setIsOpen(true) }}>
@@ -174,10 +189,13 @@ const Navbar = () => {
                 closable
                 destroyOnClose
                 title={<div>
-                    <img src={logo.src} className="object-contain" />
+                    <Link href={"/"}>
+                        <img src={logo.src} className="object-contain" />
+                    </Link>
                 </div>}
                 placement="right"
                 open={isOpen}
+                width={"70vw"}
                 onClose={() => setIsOpen(false)}
             >
                 <div className="flex flex-col gap-2">

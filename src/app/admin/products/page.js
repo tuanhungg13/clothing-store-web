@@ -7,6 +7,7 @@ import useProductController from "@/hook/useProductController";
 import FormAddProduct from "@/component/form/FormAddProduct";
 import { CATEGORYOPTION } from "@/utils/helper/appCommon";
 import { useSelector } from "react-redux";
+import { MdOutlineEdit, MdOutlineDelete } from "react-icons/md";
 
 const rowClassName = "py-2 px-4 text-center whitespace-nowrap"
 
@@ -15,10 +16,11 @@ export default function ProductManage() {
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [dataProduct, setDataProduct] = useState({})
     const [isLoading, setIsLoading] = useState(false)
-    const [params, setParams] = useState({ page: 1, size: 5 })
+    const [params, setParams] = useState({ page: 1, size: 12 })
     const {
         products = [],
         fetchProducts = () => { },
+        deleteProduct = () => { },
         loading,
         totalElements
     } = useProductController({ params })
@@ -48,6 +50,13 @@ export default function ProductManage() {
                 break;
         }
         return <div className={className}>{label}</div>
+    }
+    const handleDeleteProduct = async (item) => {
+        try {
+            await deleteProduct(item?.productId)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     return (
@@ -110,16 +119,16 @@ export default function ProductManage() {
                                     </td>
                                     <td className={`${rowClassName} !text-wrap text-start`}>{product?.productName}</td>
                                     <td className={`${rowClassName} whitespace-nowrap`}>{formatCurrency(product?.price)}</td>
-                                    <td className={`${rowClassName}`}>{getTotalQuantity(product?.variants)}</td>
+                                    <td className={`${rowClassName} ${getTotalQuantity(product?.variants) <= 0 ? "text-danger" : (getTotalQuantity(product?.variants)) > 30 ? "text-primary" : "text-warning"}`}>{getTotalQuantity(product?.variants)}</td>
                                     <td className={`${rowClassName}`}>{renderStatus(product?.productType)}</td>
                                     <td className={`${rowClassName}`}>{product?.category?.categoryName}</td>
-                                    <td className={`${rowClassName}`}></td>
+                                    <td className={`${rowClassName} !text-wrap`}>{product?.collection?.collectionName}</td>
                                     <td className={`${rowClassName} cursor-pointer`}>
                                         <div className="flex gap-4 justify-center">
                                             {(userInfo?.role == "admin" || userInfo?.role == "storekeeper") &&
-                                                <Button onClick={() => { handleOpenModalEdit(product) }}>Sửa</Button>}
+                                                <div className="cusor-pointer text-warning " onClick={() => { handleOpenModalEdit(product) }}><MdOutlineEdit size={24} /></div>}
                                             {userInfo?.role == "admin" &&
-                                                <Button>Xóa</Button>}
+                                                <div className="cusor-pointer text-danger " onClick={() => { handleDeleteProduct(product) }}><MdOutlineDelete size={24} /></div>}
                                         </div>
                                     </td>
                                 </tr>
