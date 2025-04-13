@@ -9,6 +9,7 @@ import {
     startAfter,
     startAt,
     endAt,
+    getCountFromServer,
     FieldPath
 } from "firebase/firestore";
 import { db, auth } from "@/utils/config/configFirebase";
@@ -16,6 +17,7 @@ import { message } from "antd";
 import { useRouter } from "next/navigation";
 import useCartController from "./useCartController";
 const useGetListOrder = (props) => {
+    const [orderCountByDate, setOrderCountByDate] = useState([]);
     const { params = {} } = props;
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -25,11 +27,11 @@ const useGetListOrder = (props) => {
     const [defaultParams, setDefaultParams] = useState({
         size: 10,
     });
-    const {
-        removeMultipleCartItems = () => { }
-    } = useCartController()
     useEffect(() => {
         fetchOrders();
+        if (params?.fromDate && params?.toDate) {
+            fetchOrderCountByDate()
+        }
     }, [params]);
 
     const fetchOrders = async () => {
@@ -102,10 +104,119 @@ const useGetListOrder = (props) => {
         }
     };
 
+    const getTotalRevenueAndOrders = async () => {
+        try {
+            const filterParams = { ...defaultParams, ...params };
+            const fromDate = filterParams?.fromDate;
+            const toDate = filterParams?.toDate;
+
+            console.log("fromDate:", fromDate);
+            console.log("toDate:", toDate);
+
+            // Lấy tổng doanh thu từ đơn hàng SUCCESS trong khoảng thời gian
+            const successOrdersQuery = query(
+                collection(db, "orders"),
+                where("status", "==", "SUCCESS"),
+                ...(fromDate && toDate ? [
+                    where("orderDate", ">=", fromDate),
+                    where("orderDate", "<=", toDate),
+                    orderBy("orderDate") // Sắp xếp theo orderDate
+                ] : [orderBy("orderDate")]) // Đảm bảo có orderBy nếu không có thời gian
+            );
+
+            const snapshotSuccessOrders = await getDocs(successOrdersQuery);
+            let totalRevenue = 0;
+
+            snapshotSuccessOrders.forEach((doc) => {
+                const data = doc.data();
+                if (data.totalPrice) {
+                    totalRevenue += Number(data.totalPrice);
+                }
+            });
+
+            // Lấy tổng số đơn hàng trong khoảng thời gian
+            const ordersQuery = query(
+                collection(db, "orders"),
+                ...(fromDate && toDate ? [
+                    where("orderDate", ">=", fromDate),
+                    where("orderDate", "<=", toDate),
+                    orderBy("orderDate") // Sắp xếp theo orderDate
+                ] : [orderBy("orderDate")]) // Đảm bảo có orderBy nếu không có thời gian
+            );
+
+            const snapshotTotalOrders = await getDocs(ordersQuery);
+            const totalOrders = snapshotTotalOrders.size;
+
+            return { totalRevenue, totalOrders };
+
+        } catch (error) {
+            console.error("Lỗi khi lấy tổng doanh thu và tổng số đơn hàng:", error);
+            return { totalRevenue: 0, totalOrders: 0 };
+        }
+    };
+
+
+    const fetchOrderCountByDate = async () => {
+        setLoading(true);
+        try {
+            const filterParams = { ...defaultParams, ...params };
+            const fromDate = filterParams?.fromDate;
+            const toDate = filterParams?.toDate;
+
+            const orderQuery = query(
+                collection(db, "orders"),
+                where("orderDate", ">=", fromDate),
+                where("orderDate", "<=", toDate),
+                orderBy("orderDate", "asc")
+            );
+
+            const snapshot = await getDocs(orderQuery);
+            const groupedOrders = groupOrdersByDate(snapshot.docs);
+
+            setOrderCountByDate(groupedOrders);
+        } catch (error) {
+            console.error("❌ Lỗi khi lấy số lượng đơn hàng theo ngày:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const groupOrdersByDate = (orders) => {
+        const grouped = {};
+
+        orders.forEach((doc) => {
+            const data = doc.data();
+            const orderDate = new Date(data.orderDate.seconds * 1000).toISOString().split('T')[0]; // Lấy ngày (YYYY-MM-DD)
+
+            // Nếu ngày đã tồn tại trong grouped, cộng thêm giá trị
+            if (grouped[orderDate]) {
+                grouped[orderDate].count++;
+                grouped[orderDate].totalPrice += data.totalPrice || 0; // Cộng tổng tiền nếu có
+            } else {
+                grouped[orderDate] = {
+                    count: 1,
+                    totalPrice: data?.totalPrice || 0, // Khởi tạo tổng tiền cho ngày này
+                };
+            }
+        });
+
+        // Chuyển đổi nhóm thành mảng
+        return Object.entries(grouped).map(([date, { count, totalPrice }]) => ({
+            date,
+            count,
+            totalPrice,
+        }));
+    };
+
+
+
+
     return {
         orders,
         loading,
-        totalElements
+        totalElements,
+        orderCountByDate,
+        getTotalRevenueAndOrders
     }
 }
 

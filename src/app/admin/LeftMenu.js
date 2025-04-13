@@ -7,9 +7,11 @@ import { IoIosMenu } from "react-icons/io";
 import { LuBox, LuList } from "react-icons/lu";
 import { MdOutlineCategory, MdOutlineCollections, MdOutlineGroups } from "react-icons/md";
 import { RiCoupon3Line } from "react-icons/ri";
+import { VscGraphLine } from "react-icons/vsc";
 
 export const ROUTE = {
     HOME: { route: "/", label: "Trang chủ" },
+    DASHBOARD: { route: "/admin/dashboard", label: "Thống kê" },
     CATEGORIES: { route: "/admin/categories", label: "Danh mục" },
     PRODUCTS: { route: "/admin/products", label: "Sản phẩm" },
     ORDER: { route: "/admin/orders", label: "Đơn hàng" },
@@ -22,6 +24,7 @@ export const ROUTE = {
 }
 
 const MENU_ITEMS = [
+    { key: ROUTE.DASHBOARD.route, icon: <VscGraphLine size={20} />, label: <Link href={ROUTE.DASHBOARD.route}>{ROUTE.DASHBOARD.label}</Link> },
     { key: ROUTE.CATEGORIES.route, icon: <MdOutlineCategory size={20} />, label: <Link href={ROUTE.CATEGORIES.route}>{ROUTE.CATEGORIES.label}</Link> },
     { key: ROUTE.PRODUCTS.route, icon: <LuBox size={20} />, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
     { key: ROUTE.ORDER.route, icon: <LuList size={20} />, label: <Link href={ROUTE.ORDER.route}>{ROUTE.ORDER.label}</Link> },

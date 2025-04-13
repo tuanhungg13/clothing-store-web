@@ -9,6 +9,7 @@ import {
     updateDoc,
     startAfter,
     limit,
+    getCountFromServer
 } from "firebase/firestore";
 import { db } from "@/utils/config/configFirebase";
 
@@ -109,13 +110,25 @@ const useCustomerController = ({ params }) => {
         }
     };
 
+    const getTotalUsersWithUserRole = async () => {
+        try {
+            const q = query(collection(db, "users"), where("role", "==", "user"));
+            const snapshot = await getCountFromServer(q);
+            return snapshot.data().count;
+        } catch (error) {
+            console.error("❌ Lỗi khi lấy tổng số users có role là user:", error);
+            return 0;
+        }
+    };
+
 
     return {
         customers,
         fetchCustomers,
         loading,
         totalElements,
-        updateUserRole
+        updateUserRole,
+        getTotalUsersWithUserRole
     };
 };
 

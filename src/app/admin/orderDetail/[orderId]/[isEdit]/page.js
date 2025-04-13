@@ -85,7 +85,6 @@ export default function OrderDetails(props) {
     }, [orderDetail])
 
     useEffect(() => {
-        console.log(userInfo.role, userInfo?.role !== "admin" || userInfo !== "salestaff")
         if (userInfo?.role !== "admin" && userInfo !== "salestaff") {
             router?.push("/admin/products")
         }
@@ -172,7 +171,7 @@ export default function OrderDetails(props) {
                                         ? dayjs(orderDetail?.orderDate?.toDate()).format('DD/MM/YYYY HH:mm')
                                         : 'N/A'}</span>
                                 </div>
-                                {orderDetail?.status === "CANCEL" || orderDetail?.state === "SUCCESS" ?
+                                {orderDetail?.status === "CANCEL" || orderDetail?.status === "SUCCESS" ?
                                     null :
                                     <div className="flex flex-col md:flex-row gap-2">
                                         <Select

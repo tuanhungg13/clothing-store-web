@@ -6,11 +6,12 @@ import { IoIosAddCircleOutline } from "react-icons/io";
 import useProductController from "@/hook/useProductController";
 import FormAddProduct from "@/component/form/FormAddProduct";
 import { CATEGORYOPTION } from "@/utils/helper/appCommon";
+import { useSelector } from "react-redux";
 
 const rowClassName = "py-2 px-4 text-center whitespace-nowrap"
 
 export default function ProductManage() {
-
+    const userInfo = useSelector(state => state?.user?.info)
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [dataProduct, setDataProduct] = useState({})
     const [isLoading, setIsLoading] = useState(false)
@@ -50,7 +51,7 @@ export default function ProductManage() {
     }
 
     return (
-        <div className={`bg-background w-full rounded-lg`}>
+        <div className={`bg-background w-full min-h-screen rounded-lg`}>
             <div className="h-screen w-full p-4">
                 <div className="flex flex-col md:flex-row gap-4 md:justify-between md:items-center">
                     <h2 className="text-3xl font-semibold">Sản phẩm</h2>
@@ -68,10 +69,11 @@ export default function ProductManage() {
                             }}
 
                         />
-                        <Button type="primary" className="flex items-center gap-4 btn-green-color"
-                            onClick={() => { setIsOpenModal(true) }}>
-                            <IoIosAddCircleOutline />
-                            Tạo sản phẩm</Button>
+                        {(userInfo?.role == "admin" || userInfo?.role == "storekeeper") &&
+                            <Button type="primary" className="flex items-center gap-4 btn-green-color"
+                                onClick={() => { setIsOpenModal(true) }}>
+                                <IoIosAddCircleOutline />
+                                Tạo sản phẩm</Button>}
                     </div>
 
                 </div>
@@ -114,8 +116,10 @@ export default function ProductManage() {
                                     <td className={`${rowClassName}`}></td>
                                     <td className={`${rowClassName} cursor-pointer`}>
                                         <div className="flex gap-4 justify-center">
-                                            <Button onClick={() => { handleOpenModalEdit(product) }}>Sửa</Button>
-                                            <Button>Xóa</Button>
+                                            {(userInfo?.role == "admin" || userInfo?.role == "storekeeper") &&
+                                                <Button onClick={() => { handleOpenModalEdit(product) }}>Sửa</Button>}
+                                            {userInfo?.role == "admin" &&
+                                                <Button>Xóa</Button>}
                                         </div>
                                     </td>
                                 </tr>

@@ -102,11 +102,36 @@ const useProductController = ({ params }) => {
         }
     };
 
+    const getLowStockProductsCount = async () => {
+        try {
+            // Truy vấn tất cả các sản phẩm từ Firestore
+            const productsQuery = query(
+                collection(db, "products")
+            );
+
+            const snapshot = await getDocs(productsQuery);
+
+            // Lọc các sản phẩm có số lượng nhỏ hơn 30
+            const lowStockCount = snapshot.docs.filter(docSnap => {
+                const product = docSnap.data();
+                return product.variants && product.variants.some(variant =>
+                    variant.sizes.some(size => size.quantity < 30)
+                );
+            }).length;
+
+            return lowStockCount;
+        } catch (error) {
+            console.error("Lỗi khi lấy số lượng sản phẩm ít hơn 30:", error);
+            return 0;
+        }
+    };
+
     return {
         products,
         fetchProducts,
         loading,
-        totalElements
+        totalElements,
+        getLowStockProductsCount
     };
 };
 
