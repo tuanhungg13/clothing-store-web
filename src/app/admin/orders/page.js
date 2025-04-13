@@ -10,6 +10,7 @@ import { IoEyeSharp } from "react-icons/io5";
 import { MdOutlineModeEdit, MdDelete } from "react-icons/md";
 import Link from "next/link";
 import { Timestamp } from "firebase/firestore";
+import { useSelector } from "react-redux";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -17,7 +18,7 @@ const { RangePicker } = DatePicker;
 
 export default function Orders() {
     const [params, setParams] = useState({ size: 12, page: 1 })
-
+    const userInfo = useSelector(state => state?.user?.info)
     const {
         orders = [],
         totalElements,
@@ -92,13 +93,17 @@ export default function Orders() {
             key: 'action',
             render: (_, record) => (
                 <div className="text-xl flex gap-2">
-                    <Link href={genLinkOrderDetails(record) + "-view"}>
+                    <Link href={genLinkOrderDetails(record) + "/view"}>
                         <div className="text-primary"><IoEyeSharp /></div>
                     </Link>
-                    <Link href={genLinkOrderDetails(record) + "-edit"}>
-                        <div className="text-warning"><MdOutlineModeEdit /></div>
-                    </Link>
-                    <div className="text-danger"><MdDelete /></div>
+                    {(userInfo?.role === "admin" || userInfo?.role === "salestaff") &&
+                        <Link href={genLinkOrderDetails(record) + "/edit"}>
+                            <div className="text-warning"><MdOutlineModeEdit /></div>
+                        </Link>}
+                    {userInfo?.role === "admin" &&
+                        <div className="text-danger"><MdDelete /></div>
+                    }
+
                 </div>
 
             )

@@ -5,14 +5,19 @@ import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { IoIosMenu } from "react-icons/io";
 import { LuBox, LuList } from "react-icons/lu";
-import { MdOutlineCategory, MdOutlineCollections } from "react-icons/md";
+import { MdOutlineCategory, MdOutlineCollections, MdOutlineGroups } from "react-icons/md";
+import { RiCoupon3Line } from "react-icons/ri";
 
 export const ROUTE = {
     HOME: { route: "/", label: "Trang chủ" },
     CATEGORIES: { route: "/admin/categories", label: "Danh mục" },
     PRODUCTS: { route: "/admin/products", label: "Sản phẩm" },
     ORDER: { route: "/admin/orders", label: "Đơn hàng" },
-    COLLECTION: { route: "/admin/collection", label: "Bộ sưu tập" }
+    COLLECTION: { route: "/admin/collection", label: "Bộ sưu tập" },
+    CUSTOMER: { route: "/admin/customers", label: "Người dùng" },
+    COUPON: { route: "/admin/coupons", label: "Phiếu giảm giá" }
+
+
 
 }
 
@@ -21,6 +26,8 @@ const MENU_ITEMS = [
     { key: ROUTE.PRODUCTS.route, icon: <LuBox size={20} />, label: <Link href={ROUTE.PRODUCTS.route}>{ROUTE.PRODUCTS.label}</Link> },
     { key: ROUTE.ORDER.route, icon: <LuList size={20} />, label: <Link href={ROUTE.ORDER.route}>{ROUTE.ORDER.label}</Link> },
     { key: ROUTE.COLLECTION.route, icon: <MdOutlineCollections size={20} />, label: <Link href={ROUTE.COLLECTION.route}>{ROUTE.COLLECTION.label}</Link> },
+    { key: ROUTE.CUSTOMER.route, icon: <MdOutlineGroups size={20} />, label: <Link href={ROUTE.CUSTOMER.route}>{ROUTE.CUSTOMER.label}</Link> },
+    { key: ROUTE.COUPON.route, icon: <RiCoupon3Line size={20} />, label: <Link href={ROUTE.COUPON.route}>{ROUTE.COUPON.label}</Link> },
 
 ]
 

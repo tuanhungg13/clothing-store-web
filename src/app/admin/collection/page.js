@@ -7,6 +7,7 @@ import { MdEdit, MdDelete } from "react-icons/md";
 import { COLLECTION_OPTION } from "@/utils/helper/appCommon";
 import { noImg } from "@/assets";
 import UploadCustom from "@/component/ui/Upload";
+import { useSelector } from "react-redux";
 
 const Collections = (props) => {
     const [params, setParams] = useState({});
@@ -22,7 +23,7 @@ const Collections = (props) => {
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [dataUpdate, setDataUpdate] = useState({});
     const [form] = Form.useForm();
-
+    const userInfo = useSelector(state => state?.user?.info)
     const columns = [
         {
             title: "#",
@@ -65,6 +66,7 @@ const Collections = (props) => {
             dataIndex: "action",
             key: "action",
             render: (_, record) => (
+                userInfo?.role === "admin" &&
                 <div className="flex gap-4">
                     <div className="text-warning cursor-pointer" onClick={() => handleFillFormUpdate(record)}>
                         <MdEdit size={20} />

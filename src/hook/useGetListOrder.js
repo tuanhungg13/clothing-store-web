@@ -87,7 +87,7 @@ const useGetListOrder = (props) => {
                 orderId: doc.id,
                 ...doc.data(),
             }));
-
+            console.log(newOrders)
             setOrders(newOrders);
 
             // ✅ Đếm tổng nếu là page 1

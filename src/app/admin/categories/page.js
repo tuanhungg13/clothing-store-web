@@ -5,6 +5,7 @@ import useCategoryController from '@/hook/useCategoryController';
 import { LuPlus } from "react-icons/lu";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { CATEGORYOPTION } from '@/utils/helper/appCommon';
+import { useSelector } from 'react-redux';
 
 const Categories = (props) => {
     const [params, setParams] = useState({})
@@ -18,8 +19,8 @@ const Categories = (props) => {
     } = useCategoryController({ ...props, params });
     const [isOpenModalCategory, setIsOpenModelCategory] = useState(false)
     const [dataUpdate, setDataUpdate] = useState({})
-    const [fileList, setFileList] = useState([])
-    const [fileListUpdate, setFileListUpdate] = useState([])
+    const userInfo = useSelector(state => state?.user?.info)
+
     const [form] = Form.useForm()
     const columnsCategory = [
         {
@@ -50,6 +51,7 @@ const Categories = (props) => {
             key: "action",
             render: (_, record) => {
                 return (
+                    userInfo?.role === "admin" &&
                     <div className='flex gap-4 '>
                         <div className='text-warning cursor-pointer' onClick={() => {
                             handleFillFormUpdate(record)

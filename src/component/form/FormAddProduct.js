@@ -36,9 +36,10 @@ const FormAddProduct = (props) => {
                 categoryId: data?.categoryId,
                 collectionId: data?.collectionId,
                 priceBeforeDiscount: data?.priceBeforeDiscount,
-                discount: data?.discount * 100,
+                discount: data?.discount,
                 variants: data?.variants,
-                productType: data?.productType
+                productType: data?.productType,
+                originPrice: data?.originPrice
             });
             const imagesUrl = data?.images?.map(item => ({ imgData: item }))
             setFileListUpdate(imagesUrl)
@@ -89,7 +90,8 @@ const FormAddProduct = (props) => {
                 categoryId = null,
                 collectionId = null,
                 variants = [],
-                productType
+                productType,
+                originPrice
             } = form.getFieldValue();
             let imagesUrl = [];
             if (fileList?.length > 0) {
@@ -108,6 +110,7 @@ const FormAddProduct = (props) => {
                 sold: 0,
                 totalRating: 5,
                 productType: productType,
+                originPrice: originPrice,
                 createdAt: serverTimestamp()
             });
             await fetchProducts()
@@ -132,7 +135,8 @@ const FormAddProduct = (props) => {
                 categoryId = null,
                 collectionId = null,
                 variants = [],
-                productType
+                productType,
+                originPrice
             } = form.getFieldValue();
 
             let imagesUrl = [];
@@ -154,6 +158,7 @@ const FormAddProduct = (props) => {
                 variants: variants,
                 description: description,
                 productType: productType,
+                originPrice: originPrice,
                 createdAt: serverTimestamp()
             });
 
@@ -204,19 +209,29 @@ const FormAddProduct = (props) => {
                     }
                 }
             }}>
-            <Form.Item name="productName" label="Tên sản phẩm" rules={[{
-                required: true,
-                message: "Vui lòng nhập tên sản phẩm"
-            }]}>
-                <Input />
-            </Form.Item>
+            <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
+                <Form.Item name="productName" label="Tên sản phẩm" rules={[{
+                    required: true,
+                    message: "Vui lòng nhập tên sản phẩm"
+                }]}>
+                    <Input placeholder="Nhập tên sản phẩm" />
+                </Form.Item>
+                <Form.Item name="originPrice" label="Giá nhập vào" rules={[{
+                    required: true,
+                    message: "Vui lòng nhập giá nhập hàng"
+                }]}>
+                    <InputNumber className="w-full" placeholder="Nhập giá nhập vào"
+                        formatter={(value) => formatCurrencyInput(value)} />
+                </Form.Item>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
 
                 <Form.Item name="price" label="Giá sản phẩm" rules={[{
                     required: true,
                     message: "Vui lòng nhập giá sản phẩm"
                 }]}>
-                    <InputNumber className="w-full"
+                    <InputNumber className="w-full" placeholder="Nhập giá bán"
                         formatter={(value) => formatCurrencyInput(value)} />
                 </Form.Item>
                 <Form.Item name="categoryId" label="Danh mục sản phẩm" >
@@ -246,12 +261,13 @@ const FormAddProduct = (props) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-4 lg:gap-6">
-                <Form.Item name="discount" label="Giảm giá (%)">
-                    <Input />
+                <Form.Item name="discount" initialValue={0} label="Giảm giá (%)">
+                    <Input placeholder="Giảm giá" />
                 </Form.Item>
                 <Form.Item name="priceBeforeDiscount" label="Giá gốc">
                     <InputNumber disabled={true} className="w-full"
                         formatter={(value) => formatCurrencyInput(value)}
+                        placeholder="Giá bán khi chưa giảm"
                     />
                 </Form.Item>
 
@@ -259,65 +275,79 @@ const FormAddProduct = (props) => {
             <Form.Item label="Mô tả sản phẩm">
                 <MarkdownEditor value={description} setValue={setDescription} />
             </Form.Item>
-            <Form.List name="variants" >
-                {(fields, { add, remove }) => (
-                    <>
-                        {fields.map(({ key, name, ...restField }) => (
-                            <div key={key} className="border p-4 rounded-lg mb-4">
-                                {/* Màu sắc */}
-                                <Form.Item {...restField} name={[name, "color"]}
-                                    label="Màu sắc"
-                                    rules={[{ required: true, message: "Vui lòng nhập màu sắc" }]}>
-                                    <Input placeholder="Nhập màu sắc" />
-                                </Form.Item>
+            <Form.Item
+                name="variants"
+                rules={[
+                    {
+                        validator: async (_, value) => {
+                            if (!value || value.length === 0) {
+                                return Promise.reject(new Error("Vui lòng thêm ít nhất một biến thể"));
+                            }
+                            return Promise.resolve();
+                        },
+                    },
+                ]}
+            >
+                <Form.List name="variants">
+                    {(fields, { add, remove }) => (
+                        <>
+                            {fields.map(({ key, name, ...restField }) => (
+                                <div key={key} className="border p-4 rounded-lg mb-4">
+                                    {/* Màu sắc */}
+                                    <Form.Item {...restField} name={[name, "color"]}
+                                        label="Màu sắc"
+                                        rules={[{ required: true, message: "Vui lòng nhập màu sắc" }]}>
+                                        <Input placeholder="Nhập màu sắc" />
+                                    </Form.Item>
 
-                                {/* Danh sách kích cỡ và số lượng */}
-                                <Form.List name={[name, "sizes"]} rules={[{
-                                    validator: async (_, value) => {
-                                        if (!value || value.length === 0) {
-                                            return Promise.reject(new Error("Vui lòng thêm ít nhất một kích cỡ"));
+                                    {/* Danh sách kích cỡ và số lượng */}
+                                    <Form.List name={[name, "sizes"]} rules={[{
+                                        validator: async (_, value) => {
+                                            if (!value || value.length === 0) {
+                                                return Promise.reject(new Error("Vui lòng thêm ít nhất một kích cỡ"));
+                                            }
                                         }
-                                    }
-                                }]}>
-                                    {(sizeFields, { add: addSize, remove: removeSize }) => (
-                                        <>
-                                            {sizeFields.map(({ key: sizeKey, name: sizeName, ...sizeRest }) => (
-                                                <div key={sizeKey} className="flex gap-4 items-center">
-                                                    {/* Kích cỡ */}
-                                                    <Form.Item {...sizeRest} name={[sizeName, "size"]}
-                                                        label="Kích cỡ"
-                                                        rules={[{ required: true, message: "Nhập kích cỡ" }]}>
-                                                        <Input placeholder="Nhập kích cỡ" />
-                                                    </Form.Item>
+                                    }]}>
+                                        {(sizeFields, { add: addSize, remove: removeSize }) => (
+                                            <>
+                                                {sizeFields.map(({ key: sizeKey, name: sizeName, ...sizeRest }) => (
+                                                    <div key={sizeKey} className="flex gap-4 items-center">
+                                                        {/* Kích cỡ */}
+                                                        <Form.Item {...sizeRest} name={[sizeName, "size"]}
+                                                            label="Kích cỡ"
+                                                            rules={[{ required: true, message: "Nhập kích cỡ" }]}>
+                                                            <Input placeholder="Nhập kích cỡ" />
+                                                        </Form.Item>
 
-                                                    {/* Số lượng */}
-                                                    <Form.Item {...sizeRest} name={[sizeName, "quantity"]}
-                                                        label="Số lượng"
-                                                        rules={[
-                                                            { required: true, message: "Nhập số lượng" },
-                                                            { pattern: /^[0-9]+$/, message: "Phải là số" }
-                                                        ]}
-                                                        initialValue={1}>
-                                                        <InputNumber placeholder="Nhập số lượng" />
-                                                    </Form.Item>
+                                                        {/* Số lượng */}
+                                                        <Form.Item {...sizeRest} name={[sizeName, "quantity"]}
+                                                            label="Số lượng"
+                                                            rules={[
+                                                                { required: true, message: "Nhập số lượng" },
+                                                                { pattern: /^[0-9]+$/, message: "Phải là số" }
+                                                            ]}
+                                                            initialValue={1}>
+                                                            <InputNumber placeholder="Nhập số lượng" />
+                                                        </Form.Item>
 
-                                                    {/* Nút xóa kích cỡ */}
-                                                    <Button onClick={() => removeSize(sizeName)} danger>Xóa</Button>
-                                                </div>
-                                            ))}
-                                            <Button onClick={() => addSize()} type="dashed">+ Thêm kích cỡ</Button>
-                                        </>
-                                    )}
-                                </Form.List>
+                                                        {/* Nút xóa kích cỡ */}
+                                                        <Button onClick={() => removeSize(sizeName)} danger>Xóa</Button>
+                                                    </div>
+                                                ))}
+                                                <Button onClick={() => addSize()} type="dashed">+ Thêm kích cỡ</Button>
+                                            </>
+                                        )}
+                                    </Form.List>
 
-                                {/* Nút xóa biến thể */}
-                                <Button onClick={() => remove(name)} className="ms-4" danger>Xóa màu</Button>
-                            </div>
-                        ))}
-                        <Button onClick={() => add()} type="dashed">+ Thêm biến thể</Button>
-                    </>
-                )}
-            </Form.List>
+                                    {/* Nút xóa biến thể */}
+                                    <Button onClick={() => remove(name)} className="ms-4" danger>Xóa màu</Button>
+                                </div>
+                            ))}
+                            <Button onClick={() => add()} type="dashed">+ Thêm biến thể</Button>
+                        </>
+                    )}
+                </Form.List>
+            </Form.Item>
             <Form.Item name='images' label="Ảnh sản phẩm" className="mt-4">
                 <UploadCustom fileList={fileList}
                     fileListUpdate={fileListUpdate}

@@ -12,7 +12,17 @@ import { noImg } from "@/assets";
 import OrderPrintView from "@/component/print/OrderPrintView";
 import { useReactToPrint } from "react-to-print";
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 const { Option } = Select;
+
+const mappingStatus = {
+    PENDING: "Đang xử lí",
+    SHIPPED: "Đang giao hàng",
+    CANCEL: "Hủy",
+    SUCCESS: "Hoàn tất"
+
+}
 
 const columns = [
     {
@@ -55,21 +65,31 @@ const columns = [
 ];
 
 export default function OrderDetails(props) {
-    const params = props?.params?.orderId?.split("-")
+    const orderId = props?.params?.orderId
+    const isEdit = props?.params?.isEdit
     const [statusChange, setStatusChange] = useState(null)
     const printRef = useRef();
     const [openPrintPreview, setOpenPrintPreview] = useState(false);
+    const userInfo = useSelector(state => state?.user?.info)
+    const router = useRouter()
 
 
     const {
         orderDetail = {},
         loading,
         updateDeliveryStatus = () => { }
-    } = useOrderDetails({ orderId: params?.[0] })
+    } = useOrderDetails({ orderId })
 
     useEffect(() => {
         setStatusChange(orderDetail?.status)
     }, [orderDetail])
+
+    useEffect(() => {
+        console.log(userInfo.role, userInfo?.role !== "admin" || userInfo !== "salestaff")
+        if (userInfo?.role !== "admin" && userInfo !== "salestaff") {
+            router?.push("/admin/products")
+        }
+    }, [])
 
     const renderStatus = (status) => {
         let baseClass =
@@ -152,31 +172,33 @@ export default function OrderDetails(props) {
                                         ? dayjs(orderDetail?.orderDate?.toDate()).format('DD/MM/YYYY HH:mm')
                                         : 'N/A'}</span>
                                 </div>
-                                <div className="flex flex-col md:flex-row gap-2">
-                                    <Select
-                                        disabled={params?.[1] === "view" ? true : false}
-                                        value={statusChange}
-                                        className="w-40"
-                                        placeholder="Chọn trạng thái"
-                                        onChange={(value) => { setStatusChange(value) }}
-                                    >
-                                        <Option value="PENDING">Đang xử lí</Option>
-                                        <Option value="SHIPPED">Đang giao</Option>
-                                        <Option value="SUCCESS">Hoàn tất</Option>
-                                        <Option value="CANCEL">Hủy</Option>
-                                    </Select>
-                                    <Button icon={<FiSave />}
-                                        onClick={handUpdate}
-                                        disabled={params?.[1] === "view" ? true : false}
-                                    >Lưu</Button>
-                                    <Button
-                                        disabled={params?.[1] === "view" ? true : false}
-                                        onClick={() => setOpenPrintPreview(true)} // mở modal
-                                    >
-                                        In đơn hàng
-                                    </Button>
+                                {orderDetail?.status === "CANCEL" || orderDetail?.state === "SUCCESS" ?
+                                    null :
+                                    <div className="flex flex-col md:flex-row gap-2">
+                                        <Select
+                                            disabled={isEdit === "view" ? true : false}
+                                            value={statusChange}
+                                            className="w-40"
+                                            placeholder="Chọn trạng thái"
+                                            onChange={(value) => { setStatusChange(value) }}
+                                        >
+                                            {orderDetail?.status === "SHIPPED" ? null : <Option value="PENDING">Đang xử lí</Option>}
+                                            <Option value="SHIPPED">Đang giao</Option>
+                                            {orderDetail?.status === "SHIPPED" ? null : <Option value="CANCEL">Hủy</Option>}
+                                            {userInfo?.role === "admin" ? <Option value="SUCCESS">Hoàn tất</Option> : null}
+                                        </Select>
+                                        <Button icon={<FiSave />}
+                                            onClick={handUpdate}
+                                            disabled={isEdit === "view" ? true : false}
+                                        >Lưu</Button>
+                                        <Button
+                                            disabled={isEdit === "view" ? true : false}
+                                            onClick={() => setOpenPrintPreview(true)} // mở modal
+                                        >
+                                            In đơn hàng
+                                        </Button>
 
-                                </div>
+                                    </div>}
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <Card >
@@ -199,7 +221,8 @@ export default function OrderDetails(props) {
                                     </div>
                                     <div className="text-sm text-gray-500 space-y-1">
                                         <p>Phương thức thanh toán: Thanh toán khi nhận hàng</p>
-                                        <p>Trạng thái: {orderDetail?.status}</p>
+                                        <p>Phương thức vận chuyển: {orderDetail?.shippingPrice == 100000 ? "Giao hàng hỏa tốc" : "Giao hàng thường"}</p>
+                                        <p>Trạng thái: {mappingStatus[orderDetail?.status]}</p>
                                     </div>
                                 </Card>
 
@@ -240,11 +263,11 @@ export default function OrderDetails(props) {
                             </div>
                             <div className="flex gap-8">
                                 <div className="w-28 text-start">Giảm giá</div>
-                                <div className="w-28 text-end">{orderDetail?.discount * 100} %</div>
+                                <div className="w-28 text-end">{formatCurrency(orderDetail?.discount)}</div>
                             </div>
                             <div className="flex gap-8">
                                 <div className="w-28 text-start">Phí vận chuyển</div>
-                                <div className="w-28 text-end">{formatCurrency(orderDetail?.shippingPrice)}</div>
+                                <div className="w-28 text-end ">{formatCurrency(orderDetail?.shippingPrice)}</div>
                             </div>
                             <div className="flex gap-8 font-bold text-base text-black">
                                 <div className="w-28 text-start">Tổng tiền</div>
