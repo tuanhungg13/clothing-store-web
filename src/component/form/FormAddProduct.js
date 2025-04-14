@@ -107,9 +107,9 @@ const FormAddProduct = (props) => {
                 collectionId: collectionId,
                 priceBeforeDiscount: priceBeforeDiscount,
                 discount: discount / 100,
-                images: imagesUrl,
+                images: imagesUrl || null,
                 variants: variants,
-                description: description,
+                description: description || "",
                 sold: 0,
                 totalRating: 5,
                 productType: productType,
@@ -178,14 +178,19 @@ const FormAddProduct = (props) => {
         }
     };
 
-    const onFinish = (values) => {
-        console.log(values)
-        if (Object?.keys(data)?.length > 0) {
-            handleUpdateProduct()
+    const onFinish = async (values) => {
+        try {
+            await form.validateFields()
+            if (Object?.keys(data)?.length > 0) {
+                handleUpdateProduct()
+            }
+            else {
+                handleAddProducts()
+            }
+        } catch (error) {
+            message.error("Vui lòng điền đầy đủ thông tin")
         }
-        else {
-            handleAddProducts()
-        }
+
     }
 
 
@@ -240,6 +245,7 @@ const FormAddProduct = (props) => {
                 </Form.Item>
                 <Form.Item name="categoryId" label="Danh mục sản phẩm" >
                     <Select
+                        allowClear
                         options={categories?.map(item => ({
                             label: item?.categoryName,
                             value: item?.categoryId,
@@ -261,6 +267,7 @@ const FormAddProduct = (props) => {
                 </Form.Item>
                 <Form.Item name="collectionId" label="Bộ sưu tập sản phẩm" >
                     <Select
+                        allowClear
                         options={collections?.map(item => ({
                             label: item?.collectionName,
                             value: item?.id,
