@@ -120,6 +120,7 @@ const FormAddProduct = (props) => {
             setLoading(false)
             form.resetFields();
             setFileList([])
+            setDescription("")
             message.success("Tạo sản phẩm thành công")
         } catch (e) {
             setLoading(false)

@@ -139,6 +139,12 @@ export default function OrdersHistory() {
                         Hủy
                     </span>
                 );
+            case "RETURN":
+                return (
+                    <span className={`${baseClass} text-red-600 border-red-600 bg-red-100`}>
+                        Trả hàng
+                    </span>
+                );
             default:
                 return (
                     <span className={`${baseClass} text-gray-600 border-gray-400 bg-gray-100`}>
