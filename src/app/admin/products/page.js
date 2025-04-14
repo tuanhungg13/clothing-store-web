@@ -162,6 +162,7 @@ export default function ProductManage() {
                         fetchProducts={fetchProducts}
                         data={dataProduct}
                         isOpen={isOpenModal}
+                        loading={isLoading}
                     />
                 </Spin>
             </Drawer>
