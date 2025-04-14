@@ -4,8 +4,8 @@ import { Input, Button, Form, Typography, Spin } from "antd";
 import { AppleOutlined, GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
 import { FaGoogle, FaFacebookF, FaApple } from "react-icons/fa";
 import useAuthController from "@/hook/AuthController";
-const { Title, Text, Link } = Typography;
-
+const { Title, Text } = Typography;
+import Link from "next/link";
 const Login = () => {
     const {
         loading,
@@ -23,7 +23,7 @@ const Login = () => {
 
     return (
         <Spin spinning={loading}>
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 pb-6">
                 <div className="bg-white p-6 rounded-xl shadow-md w-[350px]">
                     <div className="mb-6 text-center">
                         <Title level={2} className="!mb-2 !font-bold">Đăng nhập</Title>
@@ -38,15 +38,15 @@ const Login = () => {
                             <Input.Password placeholder="Mật khẩu" />
                         </Form.Item>
 
-                        <div className="text-right mb-4">
+                        {/* <div className="text-right mb-4">
                             <Link href="#">Quên mật khẩu</Link>
-                        </div>
+                        </div> */}
 
                         <Form.Item>
                             <Button
-                                type="primary"
+                                type="default"
                                 htmlType="submit"
-                                className="w-full rounded-full bg-black hover:opacity-80"
+                                className="w-full text-white rounded-full bg-black hover:!opacity-80 hover:!bg-black hover:!border-none hover:!text-white"
                                 size="large"
                             >
                                 ĐĂNG NHẬP
@@ -65,9 +65,9 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <div className="text-center">
-                        <Text>Bạn chưa có tài khoản </Text>
-                        <Link href="/register">Đăng ký</Link>
+                    <div className="flex gap-2 justify-center items-end">
+                        <Text>Bạn chưa có tài khoản ? </Text>
+                        <Link href="/register" className="text-blue-500 text-sm">Đăng ký</Link>
                     </div>
                 </div>
             </div>

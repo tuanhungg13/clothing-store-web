@@ -7,21 +7,23 @@ import Link from "next/link";
 import { IoCartOutline, IoChevronDownOutline, IoInformationCircleOutline, IoLogOutOutline, IoMenu, IoPersonCircleOutline } from "react-icons/io5";
 import { useSelector, useDispatch } from "react-redux"
 import { Button, Drawer } from "antd";
+import { IoHomeOutline } from "react-icons/io5";
 import { FiHome, FiBox, FiPhoneCall, FiLogIn } from "react-icons/fi";
-import { PiHandHeartBold } from "react-icons/pi";
 import { FaRegNewspaper, FaUserCircle } from "react-icons/fa";
-import { TbCategory } from "react-icons/tb";
+import { HiOutlineUserCircle } from "react-icons/hi2";
+
 import { saveUserInfo } from "@/redux/slices/userSlice";
 import Options from "../ui/Options";
 import useCartController from "@/hook/useCartController";
 import useAuthController from "@/hook/AuthController";
 import { initCart } from "@/redux/slices/cartSlice";
 import { MdOutlineStorefront } from "react-icons/md";
+import { GrHistory } from "react-icons/gr";
 
 const route = [
-    { name: "home", route: "/", label: "Trang chủ" },
-    { name: "products", route: "/products", label: "Sản phẩm" },
-    { name: "about", route: "/about", label: "Giới thiệu" }
+    { name: "home", route: "/", label: "Trang chủ", icon: <IoHomeOutline size={24} className="text-gray3" /> },
+    { name: "products", route: "/products", label: "Sản phẩm", icon: <FiBox size={24} className="text-gray3" /> },
+    { name: "about", route: "/about", label: "Giới thiệu", icon: <IoInformationCircleOutline size={24} className="text-gray3" /> },
 ]
 
 
@@ -74,13 +76,18 @@ const Navbar = () => {
         {
             label: "Thông tin cá nhân",
             href: "/profile",
-            icon: <IoInformationCircleOutline size={24} className="text-gray3" />,
+            icon: <HiOutlineUserCircle size={24} className="text-gray3" />,
+        },
+        {
+            label: "Lịch sử mua hàng",
+            href: "/orders",
+            icon: <GrHistory size={20} className="text-gray3 mr-1" />,
         },
         ...(userInfo?.role !== "user"
             ? [
                 {
                     label: "Quản lí cửa hàng",
-                    href: "/admin/products",
+                    href: "/admin/dashboard",
                     icon: <MdOutlineStorefront size={24} className="text-gray3" />,
                 },
             ]
@@ -97,7 +104,7 @@ const Navbar = () => {
         return (
             <Link href="/carts">
                 <div className="relative cursor-pointer">
-                    <IoCartOutline className={"text-primary"} size={30} />
+                    <IoCartOutline className={"text-black"} size={30} />
                     {totalItem ?
                         <small
                             className="absolute aspect-square flex items-center justify-center bg-danger w-5 text-xs rounded-full text-white -top-1 -right-1">
@@ -113,10 +120,12 @@ const Navbar = () => {
 
     return (
         <React.Fragment>
-            <div className="hidden lg:block">
-                <div className=" flex justify-between items-center px-4 lg:px-10 xl:px-20 py-4 bg-bgSecondary sticky top-0 shadow z-50">
+            <div className="hidden lg:block sticky top-0 shadow z-50">
+                <div className=" flex justify-between items-center px-4 lg:px-10 xl:px-20 py-4 bg-bgSecondary ">
                     <div className="flex gap-4 items-center">
-                        <img src={logo.src} className="object-contain" />
+                        <Link href={"/"}>
+                            <img src={logo.src} className="object-contain" />
+                        </Link>
                         <div>
                             {route?.map((item, index) => (
                                 <Link href={item?.route} key={`ghd-${index}`} className={`p-2 hover:text-primary ${pathname === item?.route ? "text-primary" : ""}`}>{item?.label}</Link>
@@ -127,7 +136,8 @@ const Navbar = () => {
                         {cart()}
                         {userInfo ?
                             <div className="flex justify-center">
-                                <FaUserCircle className="text-primary" size={48} />
+                                {userInfo?.avatar ? <img src={userInfo?.avatar} className="w-12 h-12 rounded-full object-cover" /> :
+                                    <FaUserCircle className="text-black" size={48} />}
                                 <div className="ml-2">
                                     <label>Xin chào!</label>
                                     <Options
@@ -143,9 +153,20 @@ const Navbar = () => {
                             </div>
                             :
                             <div className="flex gap-4">
-                                <Link href={"/login"}>
-                                    <Button className="btn-green-color">Đăng nhập</Button>
-                                </Link>
+                                <div className="min-w-28">
+                                    <Link href={"/login"}>
+                                        <Button
+                                            style={{
+                                                transform: "none",
+                                                boxShadow: "none",
+                                                transition: "none",
+                                            }}
+                                            type="default"
+                                            className="w-full text-white bg-black hover:!opacity-80 hover:!bg-black hover:!border-none hover:!text-white"
+                                        >Đăng nhập</Button>
+                                    </Link>
+                                </div>
+
                                 <Button>Đăng ký</Button>
                             </div>
                         }
@@ -154,7 +175,8 @@ const Navbar = () => {
             </div>
 
             <div className="flex justify-between items-center px-4 py-2 lg:hidden block shadow sticky top-0 z-50 bg-bgSecondary">
-                <img src={logo.src} className="object-contain" />
+                <Link href={"/"}>                <img src={logo.src} className="object-contain" />
+                </Link>
                 <div className="flex items-center gap-8">
                     {cart()}
                     <div className="cursor-pointer" onClick={() => { setIsOpen(true) }}>
@@ -167,25 +189,32 @@ const Navbar = () => {
                 closable
                 destroyOnClose
                 title={<div>
-                    <img src={logo.src} className="object-contain" />
+                    <Link href={"/"}>
+                        <img src={logo.src} className="object-contain" />
+                    </Link>
                 </div>}
                 placement="right"
                 open={isOpen}
+                width={"70vw"}
                 onClose={() => setIsOpen(false)}
             >
                 <div className="flex flex-col gap-2">
                     {route?.map((item, index) => (
                         <Link href={item?.route} key={`ghd-${index}`}
-                            className={`p-2 hover:text-primary ${pathname === item?.route ? " text-primary bg-gray6 rounded-lg hover:bg-gray6" : ""}`}
+                            className={`p-2 flex gap-2 px-4 py-2 hover:text-primary ${pathname === item?.route ? " text-primary bg-gray6 rounded-lg hover:bg-gray6" : ""}`}
                             onClick={() => { setIsOpen(false) }}
-                        >{item?.label}</Link>
+                        >
+                            <div>{item?.icon}</div>
+                            <div>{item?.label}</div>
+                        </Link>
                     ))}
+                    <hr />
                     {userInfo ?
                         profileOptions?.map((option, index) =>
                         (option?.href ?
                             <Link onClick={() => setIsOpen(false)} key={`hkfdfh-${index}`} href={option?.href}
                                 className={"flex gap-2 px-4 py-2 text-black hover:bg-gray-100 rounded cursor-pointer"} role="menuitem">
-                                <IoPersonCircleOutline size={24} />
+                                <div>{option?.icon}</div>
                                 <p>{option?.label}</p>
                             </Link>
                             :
@@ -200,7 +229,7 @@ const Navbar = () => {
                         :
                         <Link href={"/login"} onClick={() => setIsOpen(false)}>
                             <div className={`py-2 px-4 flex items-center gap-4`}>
-                                <FiLogIn size={20} />
+                                <FiLogIn size={20} className="text-gray3" />
                                 Đăng nhập
                             </div>
                         </Link>

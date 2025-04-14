@@ -3,6 +3,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     updateProfile,
+    sendEmailVerification,
     signOut,
 } from "firebase/auth";
 import {
@@ -43,11 +44,18 @@ const useAuthController = () => {
 
             // 2. Tạo dữ liệu user
             const newUserData = {
-                uid: user.uid,
-                email: user.email,
-                fullName: additionalData.fullName || user.displayName || "",
-                phoneNumber: additionalData.phoneNumber || "",
+                uid: user?.uid,
+                email: user?.email,
+                fullName: additionalData?.fullName || user?.displayName || "",
+                phoneNumber: additionalData?.phoneNumber || "",
                 role: "user",
+                coupons: [],
+                address: {
+                    province: "",
+                    district: "",
+                    ward: "",
+                    street: ""
+                },
                 cartId: cartRef.id, // Gán cartId
                 createdAt: serverTimestamp(),
             };
@@ -69,10 +77,11 @@ const useAuthController = () => {
             await updateProfile(user, {
                 displayName: fullName,
             });
-
-            const userData = await createUserInFirestore(user, { fullName, phoneNumber });
-            router.push("/login")
-            message.success("Đăng ký thành công")
+            await sendEmailVerification(user);
+            await createUserInFirestore(user, { fullName, phoneNumber });
+            message.success("Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.", 2, () => {
+                router.push("/login");
+            });
         } catch (error) {
             console.error("Lỗi đăng ký:", error.message);
             throw error;
@@ -87,7 +96,12 @@ const useAuthController = () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-
+            if (!user.emailVerified) {
+                message.warning("Vui lòng xác minh email trước khi đăng nhập.");
+                // Nếu chưa xác thực thì sign out ngay để tránh giữ phiên
+                await auth.signOut();
+                return;
+            }
             // Lấy dữ liệu user từ Firestore
             const userRef = doc(db, "users", user.uid);
             const snapshot = await getDoc(userRef);
@@ -126,11 +140,37 @@ const useAuthController = () => {
         }
     };
 
+    const updateUserInfo = async (uid, updatedData, callbackSuccess) => {
+        setLoading(true);
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, updatedData);
+
+            // Nếu đang chỉnh user hiện tại thì update cả Redux/localStorage
+            const updatedUserSnapshot = await getDoc(userRef);
+            const updatedUser = updatedUserSnapshot.data();
+
+            const currentUserInfo = JSON.parse(localStorage.getItem("userInfo"));
+            if (currentUserInfo?.uid === uid) {
+                dispatch(saveUserInfo(updatedUser));
+                localStorage.setItem("userInfo", JSON.stringify(updatedUser));
+            }
+            callbackSuccess()
+            message.success("Cập nhật thông tin người dùng thành công");
+        } catch (error) {
+            console.error("Lỗi cập nhật người dùng:", error.message);
+            message.error("Cập nhật thất bại");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         register,
         login,
         logout,
         loading,
+        updateUserInfo
     };
 };
 

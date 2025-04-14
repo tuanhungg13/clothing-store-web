@@ -14,6 +14,7 @@ export default function ProductDetail(props) {
     const productId = props?.params?.productId || "";
     const { addToCartFunc } = useCartController();
     const [quantity, setQuantity] = useState(1);
+    const [stockQuantity, setStockQuantity] = useState(0)
     const [variant, setVariant] = useState({
         color: "",
         size: "",
@@ -25,8 +26,19 @@ export default function ProductDetail(props) {
 
     useEffect(() => {
         setDisplayImage(product?.images?.[0])
+        if (product?.variants?.length > 0) {
+            const stock = getTotalQuantity(product?.variants)
+            setStockQuantity(stock)
+        }
     }, [product])
 
+
+    const getTotalQuantity = (variants) => {
+        return variants?.reduce((total, variant) => {
+            const variantTotal = variant?.sizes?.reduce((sum, size) => sum + Number(size?.quantity || 0), 0);
+            return total + variantTotal;
+        }, 0);
+    };
     const handleDisplayImage = (item) => {
         setDisplayImage(item)
     }
@@ -125,16 +137,16 @@ export default function ProductDetail(props) {
 
     return (
         <div className={`bg-background`}>
-            <div className={`${DEFAULT_CLASSNAME} flex gap-4 my-6`}>
+            <div className={`${DEFAULT_CLASSNAME} flex gap-4 my-6 overflow-x-auto`}>
                 <Link href="/">
-                    <div className="text-primary">Trang chủ </div>
+                    <div className="text-primary whitespace-nowrap">Trang chủ </div>
                 </Link>
                 <div>\</div>
                 <Link href={"/products"}>
-                    <div className="text-primary">Sản phẩm</div>
+                    <div className="text-primary whitespace-nowrap">Sản phẩm</div>
                 </Link>
                 <div>\</div>
-                <div>{product?.productName}</div>
+                <div className="whitespace-nowrap">{product?.productName}</div>
             </div>
             <div className={`px-4 md:px-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 bg-background ${DEFAULT_CLASSNAME}`}>
                 <div className="grid grid-cols-5 gap-6">
@@ -150,7 +162,7 @@ export default function ProductDetail(props) {
                             </div>
                         }
                     </div>
-                    <div className="flex flex-col gap-4 col-span-5 lg:col-span-4 p-4 border border-stroke h-max rounded-2xl">
+                    <div className="flex flex-col relative gap-4 col-span-5 lg:col-span-4 p-4 border border-stroke h-max rounded-2xl">
                         {displayImage ?
                             <img src={displayImage} className="w-full aspect-square object-cover rounded-2xl " />
                             :
@@ -158,6 +170,7 @@ export default function ProductDetail(props) {
                                 <img src={noImg.src} className="h-24 w-24" />
                             </div>
                         }
+                        {stockQuantity <= 0 && <div className="absolute top-5 left-0 bg-gray3 px-4 py-2 rounded-r-xl">Hết hàng</div>}
                     </div>
                     <div className=" block lg:hidden w-full flex gap-4 col-span-5 overflow-x-auto overflow-hidden no-scrollbar">
                         {product?.images?.length > 0 ? product?.images?.map((item, index) => (
@@ -241,6 +254,7 @@ export default function ProductDetail(props) {
                     <div>
                         <Button className="!h-12" style={{ backgroundColor: "black", color: "white" }}
                             onClick={handleAddToCart}
+                            disabled={stockQuantity <= 0}
                         >THÊM VÀO GIỎ HÀNG</Button>
                     </div>
 

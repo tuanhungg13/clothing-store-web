@@ -6,18 +6,21 @@ import { IoIosAddCircleOutline } from "react-icons/io";
 import useProductController from "@/hook/useProductController";
 import FormAddProduct from "@/component/form/FormAddProduct";
 import { CATEGORYOPTION } from "@/utils/helper/appCommon";
+import { useSelector } from "react-redux";
+import { MdOutlineEdit, MdOutlineDelete } from "react-icons/md";
 
 const rowClassName = "py-2 px-4 text-center whitespace-nowrap"
 
 export default function ProductManage() {
-
+    const userInfo = useSelector(state => state?.user?.info)
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [dataProduct, setDataProduct] = useState({})
     const [isLoading, setIsLoading] = useState(false)
-    const [params, setParams] = useState({ page: 1, size: 5 })
+    const [params, setParams] = useState({ page: 1, size: 12 })
     const {
         products = [],
         fetchProducts = () => { },
+        deleteProduct = () => { },
         loading,
         totalElements
     } = useProductController({ params })
@@ -48,12 +51,19 @@ export default function ProductManage() {
         }
         return <div className={className}>{label}</div>
     }
+    const handleDeleteProduct = async (item) => {
+        try {
+            await deleteProduct(item?.productId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     return (
-        <div className={`bg-background w-full rounded-lg`}>
-            <div className="h-screen w-full p-4">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-2xl lg:text-4xl font-semibold">Sản phẩm</h2>
+        <div className={`bg-background w-full min-h-screen rounded-lg`}>
+            <div className="w-full p-4">
+                <div className="flex flex-col md:flex-row gap-4 md:justify-between md:items-center">
+                    <h2 className="text-3xl font-semibold">Sản phẩm</h2>
                     <div className="flex gap-6">
                         <Select
                             options={[{ label: "Tất cả", value: 2 }, ...CATEGORYOPTION,]}
@@ -68,14 +78,15 @@ export default function ProductManage() {
                             }}
 
                         />
-                        <Button type="primary" className="flex items-center gap-4 btn-green-color"
-                            onClick={() => { setIsOpenModal(true) }}>
-                            <IoIosAddCircleOutline />
-                            Tạo sản phẩm</Button>
+                        {(userInfo?.role == "admin" || userInfo?.role == "storekeeper") &&
+                            <Button type="primary" className="flex items-center gap-4 btn-green-color"
+                                onClick={() => { setIsOpenModal(true) }}>
+                                <IoIosAddCircleOutline />
+                                Tạo sản phẩm</Button>}
                     </div>
 
                 </div>
-                <div className="hidden md:block overflow-x-auto mt-8">
+                <div className="overflow-x-auto mt-8">
                     <table className="table-auto w-full border-collapse rounded-xl">
                         <thead>
                             <tr className="bg-gray-100">
@@ -108,14 +119,16 @@ export default function ProductManage() {
                                     </td>
                                     <td className={`${rowClassName} !text-wrap text-start`}>{product?.productName}</td>
                                     <td className={`${rowClassName} whitespace-nowrap`}>{formatCurrency(product?.price)}</td>
-                                    <td className={`${rowClassName}`}>{getTotalQuantity(product?.variants)}</td>
+                                    <td className={`${rowClassName} ${getTotalQuantity(product?.variants) <= 0 ? "text-danger" : (getTotalQuantity(product?.variants)) > 30 ? "text-primary" : "text-warning"}`}>{getTotalQuantity(product?.variants)}</td>
                                     <td className={`${rowClassName}`}>{renderStatus(product?.productType)}</td>
                                     <td className={`${rowClassName}`}>{product?.category?.categoryName}</td>
-                                    <td className={`${rowClassName}`}></td>
+                                    <td className={`${rowClassName} !text-wrap`}>{product?.collection?.collectionName}</td>
                                     <td className={`${rowClassName} cursor-pointer`}>
                                         <div className="flex gap-4 justify-center">
-                                            <Button onClick={() => { handleOpenModalEdit(product) }}>Sửa</Button>
-                                            <Button>Xóa</Button>
+                                            {(userInfo?.role == "admin" || userInfo?.role == "storekeeper") &&
+                                                <div className="cusor-pointer text-warning " onClick={() => { handleOpenModalEdit(product) }}><MdOutlineEdit size={24} /></div>}
+                                            {userInfo?.role == "admin" &&
+                                                <div className="cusor-pointer text-danger " onClick={() => { handleDeleteProduct(product) }}><MdOutlineDelete size={24} /></div>}
                                         </div>
                                     </td>
                                 </tr>

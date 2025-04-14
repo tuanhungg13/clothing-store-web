@@ -7,6 +7,7 @@ import { MdEdit, MdDelete } from "react-icons/md";
 import { COLLECTION_OPTION } from "@/utils/helper/appCommon";
 import { noImg } from "@/assets";
 import UploadCustom from "@/component/ui/Upload";
+import { useSelector } from "react-redux";
 
 const Collections = (props) => {
     const [params, setParams] = useState({});
@@ -22,7 +23,7 @@ const Collections = (props) => {
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [dataUpdate, setDataUpdate] = useState({});
     const [form] = Form.useForm();
-
+    const userInfo = useSelector(state => state?.user?.info)
     const columns = [
         {
             title: "#",
@@ -65,6 +66,7 @@ const Collections = (props) => {
             dataIndex: "action",
             key: "action",
             render: (_, record) => (
+                userInfo?.role === "admin" &&
                 <div className="flex gap-4">
                     <div className="text-warning cursor-pointer" onClick={() => handleFillFormUpdate(record)}>
                         <MdEdit size={20} />
@@ -182,7 +184,7 @@ const Collections = (props) => {
     return (
         <Row gutter={[12, 12]} className="p-4 bg-background rounded-lg w-full min-h-screen">
             <Col span={24}>
-                <div className="text-xl flex justify-between">
+                <div className="text-3xl font-semibold flex flex-col md:flex-row gap-4  md:justify-between">
                     Bộ sưu tập sản phẩm
                     <div className="flex gap-6">
                         <Select
@@ -196,9 +198,10 @@ const Collections = (props) => {
                                 }));
                             }}
                         />
-                        <Button className="btn-green-color" type="primary" onClick={() => setIsOpenModal(true)}>
-                            Thêm bộ sưu tập
-                        </Button>
+                        {userInfo?.role === "admin" &&
+                            <Button className="btn-green-color" type="primary" onClick={() => setIsOpenModal(true)}>
+                                Thêm bộ sưu tập
+                            </Button>}
                     </div>
                 </div>
 
@@ -211,6 +214,7 @@ const Collections = (props) => {
                     loading={loading}
                     pagination={false}
                     className="mt-4"
+                    scroll={{ x: "max-content" }}
                 />
             </Col>
 

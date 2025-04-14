@@ -60,3 +60,23 @@ export const COLLECTION_OPTION = [
     { label: "Nổi bật", value: "1" },
     { label: "Bình thường", value: "2" },
 ];
+
+export const formatAddress = (address) => {
+    if (!address) return "";
+
+    const { street, ward, district, province } = address;
+
+    const parts = [street, ward, district, province].filter(Boolean); // loại bỏ phần tử falsy (null, undefined, "")
+    return parts.join(", ");
+};
+
+export const VIETNAM_PHONE_PATTERN = /^(?:\+84|0)\d{9}$/
+
+
+export const mappingStatus = {
+    PENDING: "Đang xử lí",
+    SHIPPED: "Đang giao hàng",
+    CANCEL: "Hủy",
+    SUCCESS: "Hoàn tất"
+
+}

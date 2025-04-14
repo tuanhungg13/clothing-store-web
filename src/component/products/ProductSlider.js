@@ -73,10 +73,10 @@ export default function ProductSlider() {
                     ))}
                 </Slider>
                 <div className="absolute left-0 top-[35%] -translate-y-[35%] w-full flex justify-between px-2 md:px-4 lg:px-6">
-                    <button onClick={goToPrev} className={`bg-primary p-2 rounded-full`}>
+                    <button onClick={goToPrev} className={`bg-black p-2 rounded-full`}>
                         <FaArrowLeft className={`text-white text-lg md:text-2xl`} /> {/* Mũi tên với kích thước bình thường */}
                     </button>
-                    <button onClick={goToNext} className={`bg-primary p-2 rounded-full`}>
+                    <button onClick={goToNext} className={`bg-black p-2 rounded-full`}>
                         <FaArrowRight className="text-white text-lg md:text-2xl" /> {/* Mũi tên với kích thước bình thường */}
                     </button>
                 </div>

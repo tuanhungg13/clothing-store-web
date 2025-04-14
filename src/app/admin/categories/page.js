@@ -5,6 +5,7 @@ import useCategoryController from '@/hook/useCategoryController';
 import { LuPlus } from "react-icons/lu";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { CATEGORYOPTION } from '@/utils/helper/appCommon';
+import { useSelector } from 'react-redux';
 
 const Categories = (props) => {
     const [params, setParams] = useState({})
@@ -18,8 +19,8 @@ const Categories = (props) => {
     } = useCategoryController({ ...props, params });
     const [isOpenModalCategory, setIsOpenModelCategory] = useState(false)
     const [dataUpdate, setDataUpdate] = useState({})
-    const [fileList, setFileList] = useState([])
-    const [fileListUpdate, setFileListUpdate] = useState([])
+    const userInfo = useSelector(state => state?.user?.info)
+
     const [form] = Form.useForm()
     const columnsCategory = [
         {
@@ -50,6 +51,7 @@ const Categories = (props) => {
             key: "action",
             render: (_, record) => {
                 return (
+                    userInfo?.role === "admin" &&
                     <div className='flex gap-4 '>
                         <div className='text-warning cursor-pointer' onClick={() => {
                             handleFillFormUpdate(record)
@@ -149,8 +151,8 @@ const Categories = (props) => {
     return (
         <Row gutter={[12, 12]} className="p-4 bg-background rounded-lg w-full min-h-screen">
             <Col xs={24} sm={24} md={24} lg={24} xl={24} className='!pr-4'>
-                <div className="text-xl flex justify-between">
-                    Danh mục sản phẩm
+                <div className="text-3xl font-semibold flex flex-col gap-4 md:flex-row md:justify-between">
+                    Danh mục
                     <div className='flex gap-6'>
                         <Select
                             options={[{ label: "Tất cả", value: 4 }, ...CATEGORYOPTION,]}
@@ -164,11 +166,12 @@ const Categories = (props) => {
                             }}
 
                         />
-                        <Button className='btn-green-color'
-                            type='primary'
-                            onClick={() => { setIsOpenModelCategory(true) }}
-                        >Thêm danh mục
-                        </Button>
+                        {userInfo?.role === "admin" &&
+                            <Button className='btn-green-color'
+                                type='primary'
+                                onClick={() => { setIsOpenModelCategory(true) }}
+                            >Thêm danh mục
+                            </Button>}
                     </div>
 
                 </div>

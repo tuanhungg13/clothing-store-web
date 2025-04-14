@@ -14,6 +14,7 @@
     "antd": "^5.24.4",
     "dayjs": "^1.11.13",
     "firebase": "^11.5.0",
+    "framer-motion": "^12.6.5",
     "lodash": "^4.17.21",
     "next": "14.2.25",
     "react": "^18",
@@ -22,6 +23,7 @@
     "react-redux": "^9.2.0",
     "react-slick": "^0.30.3",
     "react-to-print": "^2.15.1",
+    "recharts": "^2.15.2",
     "slick-carousel": "^1.8.1"
   },
   "devDependencies": {

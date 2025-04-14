@@ -32,7 +32,7 @@ const useOrderDetails = ({ orderId }) => {
             setLoading(false);
         }
     };
-    const updateDeliveryStatus = async (newStatus) => {
+    const updateDeliveryStatus = async (newStatus, orderItems) => {
         if (!orderId) return;
         setLoading(true);
         try {
@@ -41,6 +41,50 @@ const useOrderDetails = ({ orderId }) => {
                 status: newStatus,
                 updatedAt: new Date(),
             });
+            if (newStatus === "SUCCESS" && Array.isArray(orderItems)) {
+                const updatePromises = orderItems.map(async (item) => {
+                    const productRef = doc(db, "products", item?.productId);
+                    await updateDoc(productRef, {
+                        sold: increment(item?.quantity),
+                    });
+                });
+
+                await Promise.all(updatePromises);
+            }
+            else if (newStatus === "CANCEL" || newStatus === "RETURN") {
+                const updateQuantityPromises = orderItems.map(async (item) => {
+                    const productRef = doc(db, "products", item?.productId);
+                    const productSnap = await getDoc(productRef);
+
+                    if (productSnap.exists()) {
+                        const productData = productSnap.data();
+                        const updatedVariants = productData.variants.map(variant => {
+                            if (variant?.color === item?.variant?.color) {
+                                return {
+                                    ...variant,
+                                    sizes: variant?.sizes?.map(sizeObj => {
+                                        if (sizeObj?.size === item?.variant?.size) {
+                                            return {
+                                                ...sizeObj,
+                                                quantity: sizeObj?.quantity + item?.quantity,
+                                            };
+                                        }
+                                        return sizeObj;
+                                    }),
+                                };
+                            }
+                            return variant;
+                        });
+
+                        await updateDoc(productRef, {
+                            variants: updatedVariants,
+                        });
+                    }
+                });
+
+                await Promise.all(updateQuantityPromises);
+            }
+
             message.success("Cập nhật trạng thái giao hàng thành công!");
             await fetchOrderDetail(); // cập nhật lại dữ liệu mới nhất
         } catch (error) {
