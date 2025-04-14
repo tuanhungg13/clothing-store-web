@@ -252,7 +252,7 @@ export default function Customers() {
                             name="role"
                             rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                         >
-                            <Select disabled={!(isUpdate && userInfo?.role === "admin")} >
+                            <Select disabled={!(isUpdate && userInfo?.role === "admin" && dataUpdateUser?.role == "admin")} >
                                 <Option value="user">Người dùng</Option>
                                 {/* <Option value="admin">Chủ cửa hàng</Option> */}
                                 <Option value="storekeeper">Nhân viên kho</Option>

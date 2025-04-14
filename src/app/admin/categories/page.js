@@ -166,11 +166,12 @@ const Categories = (props) => {
                             }}
 
                         />
-                        <Button className='btn-green-color'
-                            type='primary'
-                            onClick={() => { setIsOpenModelCategory(true) }}
-                        >Thêm danh mục
-                        </Button>
+                        {userInfo?.role === "admin" &&
+                            <Button className='btn-green-color'
+                                type='primary'
+                                onClick={() => { setIsOpenModelCategory(true) }}
+                            >Thêm danh mục
+                            </Button>}
                     </div>
 
                 </div>

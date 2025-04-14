@@ -77,12 +77,6 @@ export default function OrderDetails(props) {
         setStatusChange(orderDetail?.status)
     }, [orderDetail])
 
-    useEffect(() => {
-        if (userInfo?.role !== "admin" && userInfo !== "salestaff") {
-            router?.push("/admin/products")
-        }
-    }, [])
-
     const renderStatus = (status) => {
         let baseClass =
             "px-3 py-1 rounded-lg text-sm font-medium border inline-block min-w-[90px] text-center";
@@ -122,7 +116,11 @@ export default function OrderDetails(props) {
     };
 
     const handUpdate = async () => {
-        await updateDeliveryStatus(statusChange, orderDetail?.orderItems)
+        try {
+            await updateDeliveryStatus(statusChange, orderDetail?.orderItems)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     const handleTotal = () => {
@@ -164,7 +162,7 @@ export default function OrderDetails(props) {
                                         ? dayjs(orderDetail?.orderDate?.toDate()).format('DD/MM/YYYY HH:mm')
                                         : 'N/A'}</span>
                                 </div>
-                                {orderDetail?.status === "CANCEL" || orderDetail?.status === "SUCCESS" ?
+                                {(orderDetail?.status === "CANCEL" || orderDetail?.status === "RETURN" || orderDetail?.status === "SUCCESS") ?
                                     null :
                                     <div className="flex flex-col md:flex-row gap-2">
                                         <Select
@@ -175,8 +173,11 @@ export default function OrderDetails(props) {
                                             onChange={(value) => { setStatusChange(value) }}
                                         >
                                             {orderDetail?.status === "SHIPPED" ? null : <Option value="PENDING">Đang xử lí</Option>}
-                                            <Option value="SHIPPED">Đang giao</Option>
+                                            {(userInfo?.role == "admin" || userInfo?.role == "storekeeper") ? <Option value="SHIPPED">Đang giao</Option> : null}
                                             {orderDetail?.status === "SHIPPED" ? null : <Option value="CANCEL">Hủy</Option>}
+                                            {(orderDetail?.status === "SHIPPED" && (userInfo?.role === "admin" || userInfo?.role === "storekeeper")) && (
+                                                <Option value="RETURN">Trả hàng</Option>
+                                            )}
                                             {(userInfo?.role == "admin" || userInfo?.role == "salestaff") ? <Option value="SUCCESS">Hoàn tất</Option> : null}
                                         </Select>
                                         <Button icon={<FiSave />}

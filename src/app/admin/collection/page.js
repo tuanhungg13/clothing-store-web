@@ -198,9 +198,10 @@ const Collections = (props) => {
                                 }));
                             }}
                         />
-                        <Button className="btn-green-color" type="primary" onClick={() => setIsOpenModal(true)}>
-                            Thêm bộ sưu tập
-                        </Button>
+                        {userInfo?.role === "admin" &&
+                            <Button className="btn-green-color" type="primary" onClick={() => setIsOpenModal(true)}>
+                                Thêm bộ sưu tập
+                            </Button>}
                     </div>
                 </div>
 
