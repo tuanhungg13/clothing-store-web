@@ -62,6 +62,7 @@ export default function Orders() {
             align: 'center',
             render: (_, record) => (
                 <div style={{ width: "100px" }}>
+                    Thanh toán khi nhận hàng
                 </div>
 
             )
@@ -96,10 +97,9 @@ export default function Orders() {
                     <Link href={genLinkOrderDetails(record) + "/view"}>
                         <div className="text-primary"><IoEyeSharp /></div>
                     </Link>
-                    {(userInfo?.role === "admin" || userInfo?.role === "salestaff") &&
-                        <Link href={genLinkOrderDetails(record) + "/edit"}>
-                            <div className="text-warning"><MdOutlineModeEdit /></div>
-                        </Link>}
+                    <Link href={genLinkOrderDetails(record) + "/edit"}>
+                        <div className="text-warning"><MdOutlineModeEdit /></div>
+                    </Link>
                     {userInfo?.role === "admin" &&
                         <div className="text-danger"><MdDelete /></div>
                     }

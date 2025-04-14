@@ -87,12 +87,14 @@ export default function Customers() {
             dataIndex: 'action',
             key: 'action',
             render: (_, record) => (
-                userInfo?.role == "admin" &&
-                <div className="text-xl flex gap-2">
-                    <div className="text-primary cursor-pointer" onClick={() => handleView(record)}><IoEyeSharp /></div>
-                    <div className="text-warning cursor-pointer" onClick={() => handleEdit(record)}><MdOutlineModeEdit /></div>
-                    <div className="text-danger cursor-pointer"><MdDelete /></div>
-                </div>
+                userInfo?.role == "admin" ?
+                    <div className="text-xl flex gap-2">
+                        <div className="text-primary cursor-pointer" onClick={() => handleView(record)}><IoEyeSharp /></div>
+                        <div className="text-warning cursor-pointer" onClick={() => handleEdit(record)}><MdOutlineModeEdit /></div>
+                        <div className="text-danger cursor-pointer"><MdDelete /></div>
+                    </div>
+                    :
+                    <div style={{ width: "100px" }}></div>
             )
         }
 
