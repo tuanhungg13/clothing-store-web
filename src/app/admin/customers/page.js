@@ -16,6 +16,13 @@ import { useForm } from "antd/es/form/Form";
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
+const optionsData = [
+    { label: "Người dùng", value: "user" },
+    { label: "Chủ cửa hàng", value: "admin" },
+    { label: "Nhân viên bán hàng", value: "salestaff" },
+    { label: "Nhân viên kho", value: "storekeeper" },
+]
+
 
 export default function Customers() {
     const [params, setParams] = useState({ size: 12, page: 1 })
@@ -80,12 +87,14 @@ export default function Customers() {
             dataIndex: 'action',
             key: 'action',
             render: (_, record) => (
-                <div className="text-xl flex gap-2">
-                    <div className="text-primary cursor-pointer" onClick={() => handleView(record)}><IoEyeSharp /></div>
-                    <div className="text-warning cursor-pointer" onClick={() => handleEdit(record)}><MdOutlineModeEdit /></div>
-                    <div className="text-danger cursor-pointer"><MdDelete /></div>
-                </div>
-
+                userInfo?.role == "admin" ?
+                    <div className="text-xl flex gap-2">
+                        <div className="text-primary cursor-pointer" onClick={() => handleView(record)}><IoEyeSharp /></div>
+                        <div className="text-warning cursor-pointer" onClick={() => handleEdit(record)}><MdOutlineModeEdit /></div>
+                        <div className="text-danger cursor-pointer"><MdDelete /></div>
+                    </div>
+                    :
+                    <div style={{ width: "100px" }}></div>
             )
         }
 
@@ -131,6 +140,13 @@ export default function Customers() {
         setIsUpdate(true)
         setDataUpdateUser(record);
         setIsOpenDrawer(true);  // Mở Drawer để chỉnh sửa người dùng
+        form.setFieldsValue({
+            fullName: record?.fullName,
+            email: record?.email,
+            phoneNumber: record?.phoneNumber,
+            role: record?.role,
+            ...record
+        });
     };
 
     const handleView = (record) => {
@@ -250,13 +266,13 @@ export default function Customers() {
                         <Form.Item
                             label="Vai trò"
                             name="role"
+                            initialValue={dataUpdateUser?.role}
                             rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                         >
-                            <Select disabled={!(isUpdate && userInfo?.role === "admin" && dataUpdateUser?.role == "admin")} >
-                                <Option value="user">Người dùng</Option>
-                                {/* <Option value="admin">Chủ cửa hàng</Option> */}
-                                <Option value="storekeeper">Nhân viên kho</Option>
-                                <Option value="salestaff">Nhân viên bán hàng</Option>
+                            <Select
+                                options={optionsData}
+                                disabled={!isUpdate || userInfo?.role !== 'admin' || dataUpdateUser?.role === 'admin'}>
+
                             </Select>
                         </Form.Item>
                     </div>
@@ -266,40 +282,40 @@ export default function Customers() {
                             label="Tỉnh/TP"
                             name={['address', 'province']}
                         >
-                            <Input disabled />
+                            <Input disabled placeholder="Thông tin Tỉnh/TP" />
                         </Form.Item>
                         <Form.Item
                             label="Quận/Huyện"
                             name={['address', 'district']}
                         >
-                            <Input disabled />
+                            <Input disabled placeholder="Thông tin Quận/Huyện" />
                         </Form.Item>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Form.Item
-                            label="Xã phường"
+                            label="Xã/Phường"
                             name={['address', 'ward']}
                         >
-                            <Input disabled />
+                            <Input disabled placeholder="Thông tin Xã/Phường" />
                         </Form.Item>
                         <Form.Item
                             label="Địa chỉ chi tiết"
                             name={['address', 'street']}
                         >
-                            <Input disabled />
+                            <Input disabled placeholder="Thông tin địa chỉ chi tiết" />
                         </Form.Item>
                     </div>
-
-                    <Form.Item>
-                        <Row justify="end">
-                            <Col span={6}>
-                                <Button type="primary" htmlType="submit" block disabled={userInfo?.role != "admin"}>
-                                    Lưu
-                                </Button>
-                            </Col>
-                        </Row>
-                    </Form.Item>
+                    {isUpdate && dataUpdateUser?.role != 'admin' &&
+                        <Form.Item>
+                            <Row justify="end">
+                                <Col span={6}>
+                                    <Button type="primary" htmlType="submit" block disabled={userInfo?.role != "admin"}>
+                                        Lưu
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Form.Item>}
 
                 </Form>
             </Drawer>

@@ -14,6 +14,7 @@ const FormAddProduct = (props) => {
     const [params, setParams] = useState({})
     const {
         data,
+        loading,
         setLoading = () => { },
         fetchProducts = () => { },
         isOpen
@@ -375,7 +376,9 @@ const FormAddProduct = (props) => {
             </Form.Item>
 
             <Form.Item>
-                <Button type="primary" className="btn-green-color" htmlType="submit">{Object?.keys(data)?.length > 0 ? "Lưu" : "Tạo"}</Button>
+                <Button type="primary" className="btn-green-color"
+                    disabled={loading}
+                    htmlType="submit">{Object?.keys(data)?.length > 0 ? "Lưu" : "Tạo"}</Button>
             </Form.Item>
         </Form>
     )
