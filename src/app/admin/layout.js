@@ -12,7 +12,7 @@ const AdminLayout = ({ children }) => {
         else {
             router?.push("/")
         }
-    }, [])
+    }, [userInfo])
     return (
         <div className="flex flex-col lg:flex-row bg-bgSecondary gap-6 pt-6 px-2">
             <div className="lg:min-h-screen lg:bg-background rounded-xl">
